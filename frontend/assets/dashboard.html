@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emineo - Accueil</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Emineo Logo">
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="active">
+                        <a href="dashboard.html">
+                            <img src="assets/images/icons/home.svg" alt="Accueil">
+                            <span>Accueil</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="campus.html">
+                            <img src="assets/images/icons/campus.svg" alt="Campus">
+                            <span>Campus</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profile.html">
+                            <img src="assets/images/icons/profile.svg" alt="Profil">
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="settings.html">
+                            <img src="assets/images/icons/settings.svg" alt="Paramètres">
+                            <span>Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="campus-selector">
+                    <h1>Accueil</h1>
+                </div>
+                <div class="notification">
+                    <img src="assets/images/icons/notification.svg" alt="Notifications">
+                </div>
+            </header>
+
+            <section class="planning-section">
+                <div class="planning-header">
+                    <h2>Planning des salles</h2>
+                    <div class="campus-info">Campus Sup de Vinci Bordeaux</div>
+                </div>
+                
+                <div class="planning-grid">
+                    <div class="room-row header-row">
+                        <div class="time-column"></div>
+                        <div class="room-column">204</div>
+                        <div class="room-column">205</div>
+                        <div class="room-column">206</div>
+                        <div class="room-column">207</div>
+                        <div class="room-column">208</div>
+                        <div class="room-column">
+                            <button class="scroll-right">
+                                <span>&gt;</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Day 1 -->
+                    <div class="planning-day">
+                        <div class="date-column">27/05</div>
+                        <div class="room-planning">
+                            <!-- Room 204 -->
+                            <div class="room-slot">
+                                <div class="reservation orange">Informatique<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 205 -->
+                            <div class="room-slot">
+                                <div class="reservation red">Mathématiques<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 206 -->
+                            <div class="room-slot">
+                                <div class="reservation yellow">Anglais<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 207 -->
+                            <div class="room-slot"></div>
+                            <!-- Room 208 -->
+                            <div class="room-slot"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Day 2 -->
+                    <div class="planning-day">
+                        <div class="date-column">28/05</div>
+                        <div class="room-planning">
+                            <!-- Room 204 -->
+                            <div class="room-slot"></div>
+                            <!-- Room 205 -->
+                            <div class="room-slot">
+                                <div class="reservation red">Mathématiques<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 206 -->
+                            <div class="room-slot">
+                                <div class="reservation yellow">Anglais<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 207 -->
+                            <div class="room-slot">
+                                <div class="reservation">Libre</div>
+                            </div>
+                            <!-- Room 208 -->
+                            <div class="room-slot"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Day 3 -->
+                    <div class="planning-day">
+                        <div class="date-column">29/05</div>
+                        <div class="room-planning">
+                            <!-- Room 204 -->
+                            <div class="room-slot"></div>
+                            <!-- Room 205 -->
+                            <div class="room-slot"></div>
+                            <!-- Room 206 -->
+                            <div class="room-slot">
+                                <div class="reservation yellow">Anglais<br>8h30 - 12h30</div>
+                            </div>
+                            <!-- Room 207 -->
+                            <div class="room-slot"></div>
+                            <!-- Room 208 -->
+                            <div class="room-slot"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>
