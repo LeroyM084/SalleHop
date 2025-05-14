@@ -6,7 +6,7 @@ const sequelize = require('../config/dbConfig'); // Importer la configuration de
 
 
 const Reservation = sequelize.define('Reservation', {
-    id:{
+    id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
@@ -58,9 +58,20 @@ const Reservation = sequelize.define('Reservation', {
         allowNull: false,
         defaultValue: 'en attente',
     },
+    idCampus: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: 'id_campus', // Mappe la colonne idCampus au champ id_campus dans la base de données
+        references: {
+            model: 'Campus',
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
+    }
 }, {
     tableName: 'reservation', // Nom de la table dans la base de données
     timestamps: false, // Désactiver les timestamps automatiques
-})
+});
 
 module.exports = Reservation; // Exporter le modèle pour l'utiliser dans d'autres fichiers
