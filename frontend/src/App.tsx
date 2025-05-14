@@ -1,8 +1,18 @@
 import React from 'react';
-import LoginPage from './components/LoginPage'; // Ou DashboardPage selon ton besoin
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './components/LoginPage';
+import DashboardPage from './components/DashboardPage';
 
 const App: React.FC = () => {
-  return <LoginPage />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;
+

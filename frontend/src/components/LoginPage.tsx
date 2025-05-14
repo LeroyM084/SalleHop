@@ -1,19 +1,38 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Main.css';
 import '../styles/LoginPage.css';
+import logo from '../assets/logo.png';
 
 const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    if (email === 'admin@emineo.fr' && password === 'admin123') {
+      navigate('/dashboard');
+    } else {
+      alert('Identifiants incorrects. Essayez admin@emineo.fr / admin123');
+    }
+  };
+
   return (
-    <div className="login-container fade-in">
+    <div className="login-container">
       <div className="login-box">
-        <div className="logo mb-20">
-          <img src="/assets/logo.png" alt="Emineo Logo" />
+        <div className="logo">
+          <img src={logo} alt="Emineo Logo" />
         </div>
-        <h2 className="subtitle mb-20 text-center">GESTION DES SALLES DE CLASSES</h2>
+        <h2 className="subtitle">GESTION DES SALLES DE CLASSES</h2>
 
         <div className="login-form">
-          <h3 className="mb-20 text-center">CONNEXION</h3>
-          <form id="loginForm">
+          <h3>CONNEXION</h3>
+          <form onSubmit={handleLogin}>
             <div className="form-group">
               <input
                 type="email"
@@ -36,11 +55,8 @@ const LoginPage: React.FC = () => {
               <button type="submit" className="btn btn-primary">SE CONNECTER</button>
             </div>
           </form>
-          <div className="forgot-password mb-10">
+          <div className="forgot-password">
             <a href="#">Mot de passe oublié ?</a>
-          </div>
-          <div className="create-account">
-            <button className="btn btn-secondary">CRÉER UN COMPTE</button>
           </div>
         </div>
       </div>

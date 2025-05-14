@@ -44,7 +44,7 @@ const useDashboardInteractions = () => {
     });
 
     return () => {
-      // Cleanup if needed
+    
     };
   }, []);
 };
