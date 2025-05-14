@@ -30,12 +30,14 @@ body {
 }
 
 .logo {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .logo img {
-  height: 70px;
+  height: 90px;        /* ou plus si tu veux */
+  width: auto;         /* garde les proportions naturelles */
 }
+
 
 .subtitle {
   color: #555;

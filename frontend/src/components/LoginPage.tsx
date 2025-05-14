@@ -1,13 +1,13 @@
 import React from 'react';
-import '../styles/main.css';
-import '../styles/login.css';
+import '../styles/Main.css';
+import '../styles/LoginPage.css';
 
 const LoginPage: React.FC = () => {
   return (
     <div className="login-container fade-in">
       <div className="login-box">
         <div className="logo mb-20">
-          <img src="/assets/images/logo.png" alt="Emineo Logo" />
+          <img src="/assets/logo.png" alt="Emineo Logo" />
         </div>
         <h2 className="subtitle mb-20 text-center">GESTION DES SALLES DE CLASSES</h2>
 

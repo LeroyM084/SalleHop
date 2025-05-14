@@ -5,7 +5,6 @@ import '../styles/dashboard.css';
 const DashboardPage: React.FC = () => {
   return (
     <div className="container">
-      {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div className="logo">
           <img src="/assets/images/logo.png" alt="Emineo Logo" />
@@ -40,7 +39,6 @@ const DashboardPage: React.FC = () => {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
         <header className="top-header">
           <div className="campus-selector">
@@ -72,7 +70,6 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Planning days */}
             {[27, 28, 29].map((day, i) => (
               <div className="planning-day" key={day}>
                 <div className="date-column">{`${day}/05`}</div>
