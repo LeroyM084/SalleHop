@@ -55,7 +55,7 @@ router.post('/signup',
 });
 
 router.post('/login', 
-    validate(loginSchema), // On utilise le middleware de validation pour vérifier les données
+    // validate(loginSchema), // On utilise le middleware de validation pour vérifier les données
     async (req, res) => {
     const { email, motdepasse } = req.body;
 
@@ -87,7 +87,7 @@ router.post('/login',
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        res.status(500).json({ message: 'Une erreur est survenue lors de la connexion' });
+        res.status(500).json({ message: 'Une erreur est survenue lors de la connexion', error });
     }
 });
 

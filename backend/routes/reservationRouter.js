@@ -11,7 +11,7 @@ const { Op } = require('sequelize') // Permet de faire des opérations dans les 
 
 router.get('/mesReservations', 
     tokenValidation,
-    async(req, res) => {
+    async(res) => {
     const userId = res.userId
     if(!userId){
         return res.status(404).json({
@@ -139,6 +139,41 @@ router.post('/newReservation',
             reservation : newReservation
         })
     }
+)
+
+router.get('/resaEnAttente', 
+    tokenValidation, 
+    // validate(schema),
+    isUserAdmin,
+    async(req,res)=>{
+        const userId = req.userId
+        try{
+        if(!userId){
+            return res.status(400).json({
+                message : 'Utilisateur introuvable !'
+            })
+        }
+
+        const campusId = user.campusId
+
+        const resas = await Reservation.findAll({
+            where : {
+                campusId : campusId,
+                status : 'En attente'
+            }
+        })
+
+        const cleanResas = resas.map(r => r.toJSON())
+        return res.status(200).json({
+            message : "Données trouvés",
+            resas : cleanResas,
+        })
+    } catch(error) {
+        return res.status(500).json({
+            error : "Erreur serveur", error
+        })
+    }
+}
 )
 
 module.exports = router 

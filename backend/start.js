@@ -1,5 +1,5 @@
 const app = require('./server')
-const PORT = 3000 // port de base, peut changer -- DEBUG
+const PORT = 8200 // port de base, peut changer -- DEBUG
 
 /*
 @TODO 
