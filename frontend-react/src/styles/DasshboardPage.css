@@ -1,0 +1,53 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #2f2f2f;
+  line-height: 1.6;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* Ajout responsive */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+}
+
+.sidebar .logo img {
+  max-width: 120px;
+}
+
+.nav-menu a {
+  border-radius: 8px;
+}
+
+.nav-menu a:hover {
+  background-color: #e3f2fd;
+}
+
+.scroll-right span {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Réservation hover effect */
+.reservation:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+  transition: all 0.2s ease-in-out;
+}
