@@ -1,69 +1,66 @@
-// Main JavaScript file for the login page
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
-    
+
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            // Basic validation
-            if (!email || !password) {
+            const motdepasse = document.getElementById('password').value; // <-- use motdepasse
+
+            // Validation basique
+            if (!email || !motdepasse) {
                 alert('Veuillez remplir tous les champs.');
                 return;
             }
-            
-            // Here you would normally make an API call to your backend
-            console.log('Tentative de connexion avec:', email);
-            
-            // For demo purposes, simulate API call with a timeout
-            simulateLogin(email, password);
+
+            try {
+                // Use a dynamic base URL for the API
+                const apiUrl = 'http://localhost:8200/api/auth/login'; 
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 'email' : email , "motdepasse" : motdepasse }), 
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Connexion réussie:', data);
+
+                    // Stocker le token dans le localStorage ou un cookie
+                    localStorage.setItem('token', data.token);
+
+                    // Rediriger vers le tableau de bord
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || 'Identifiants incorrects.');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la connexion:', error);
+                alert('Une erreur est survenue. Veuillez réessayer.');
+            }
         });
     }
-    
-    // Add event listener for "Créer un compte" button
+
+    // Gestion du bouton "Créer un compte"
     const createAccountBtn = document.querySelector('.create-account button');
     if (createAccountBtn) {
-        createAccountBtn.addEventListener('click', function() {
-            // Redirect to registration page or show registration modal
+        createAccountBtn.addEventListener('click', function () {
             console.log('Redirection vers la page de création de compte');
-            // window.location.href = 'register.html';
+            window.location.href = 'register.html';
         });
     }
-    
-    // Add event listener for "Mot de passe oublié" link
+
+    // Gestion du lien "Mot de passe oublié"
     const forgotPasswordLink = document.querySelector('.forgot-password a');
     if (forgotPasswordLink) {
-        forgotPasswordLink.addEventListener('click', function(e) {
+        forgotPasswordLink.addEventListener('click', function (e) {
             e.preventDefault();
-            // Show forgot password modal or redirect to forgot password page
             console.log('Redirection vers la page de récupération de mot de passe');
-            // window.location.href = 'forgot-password.html';
+            window.location.href = 'forgot-password.html';
         });
     }
 });
-
-function simulateLogin(email, password) {
-    // Show loading indicator
-    const loginBtn = document.querySelector('.btn-primary');
-    const originalText = loginBtn.textContent;
-    loginBtn.textContent = 'Connexion en cours...';
-    loginBtn.disabled = true;
-    
-    // Simulate API delay
-    setTimeout(function() {
-        // For demo, let's assume login is successful
-        console.log('Connexion réussie!');
-        
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
-        
-        // In case of error, you would show an error message and reset the button
-        // loginBtn.textContent = originalText;
-        // loginBtn.disabled = false;
-        // alert('Identifiants incorrects. Veuillez réessayer.');
-    }, 1000);
-}
