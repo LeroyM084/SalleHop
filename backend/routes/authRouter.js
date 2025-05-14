@@ -86,3 +86,5 @@ router.post('/login',
         res.status(500).json({ message: 'Une erreur est survenue lors de la connexion' });
     }
 });
+
+module.export = router

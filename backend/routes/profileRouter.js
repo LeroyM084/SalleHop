@@ -70,6 +70,7 @@ router.put('/profile',
 
 router.put('/profile/password',
     tokenValidation, // On utilise le middleware de validation du token
+    validate(changePasswordSchema),
     async (req, res) => {
     try {
         const userId = req.userId; // On récupère l'ID de l'utilisateur à partir du token
@@ -104,3 +105,5 @@ Route oublier mot de passe (/profile/passwordForget)
 -> Envoie un mail avec un mot de passe provisoire, le hashe et le range dans la base de données
 -> Renvoie l'user sur la page de changement de mot de passe 
  */
+
+module.export = router

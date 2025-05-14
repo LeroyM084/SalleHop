@@ -4,7 +4,7 @@ const addMembre = async (req, res) => {
     const { nom, prenom, email, idCampus, password } = req.body; // On récupère les données du corps de la requête
 
     try {
-        User.create({
+        Membre.create({
             nom,
             prenom,
             email,

@@ -3,15 +3,15 @@ const sequelize = require('../config/dbConfig'); // Importer la configuration de
 
 // Ce fichier définit le modèle salle entre la base de données et le sequelize. 
 
-const Salle = sequelize.define({
-    id : {
-        type : DataTypes.INTEGER,
-        primaryKey : true,
-        autoIncrement : true
+const Salle = sequelize.define('Salle', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    id_campus : {
-        type : DataTypes.INTEGER,
-        allowNull : false,
+    id_campus: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
         references: {
             model: 'campus',
             key: 'id',
@@ -19,12 +19,13 @@ const Salle = sequelize.define({
         onUpdate: 'CASCADE',
         onDelete: 'RESTRICT',
     },
-    numSalle : {
-        type : DataTypes.INTEGER,
-        allowNull : false
-
-    }, {
-        tableName : 'salle',
-        timestamps : false, // Désactiver les timestamps automatiques
+    numSalle: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     }
-})
+}, {
+    tableName: 'salle',
+    timestamps: false, // Désactiver les timestamps automatiques
+});
+
+module.exports = Salle;
