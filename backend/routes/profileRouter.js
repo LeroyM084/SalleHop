@@ -99,6 +99,36 @@ router.put('/profile/password',
 }
 );
 
+router.get('/profile/name', tokenValidation, 
+    async(res) => {
+        const userId = req.userId;
+        try{
+            const membre = await Membre.findByPk(userId, {
+            attributes: ['nom', 'prenom']
+            });
+
+            const { nom, prenom } = membre || { nom: null, prenom: null };
+
+            if(! nom || !prenom){
+                return res.status(404).json({error : 'non trouvé'})
+            }
+
+            return res.status(200).json({
+                'nom' : nom,
+                'prenom' : prenom
+            })
+
+
+        } catch(error) {
+            return res.status(500).json({
+                error : 'Erreur serveur', error
+            })
+        }
+
+        
+    }
+)
+
 /*
 @TODO 
 Route oublier mot de passe (/profile/passwordForget)
