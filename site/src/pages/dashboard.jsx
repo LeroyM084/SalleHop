@@ -1,10 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState(31);
+  const [userName, setUserName] = useState({ prenom: '', nom: '' });
+  const [loading, setLoading] = useState(true);
+
+  // Récupérer le nom et prénom de l'utilisateur au chargement du composant
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const res = await fetch('http://10.111.60.225:8200/api/profile/name', {
+          method: 'GET', // Correction de 'methods' en 'method'
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Ajout d'un espace après 'Bearer' et utilisation de getItem
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error('Erreur lors de la récupération des données utilisateur');
+        }
+
+        const data = await res.json();
+        setUserName({ 
+          prenom: data.prenom || '', 
+          nom: data.nom || '' 
+        });
+      } catch (error) {
+        console.error('Erreur:', error);
+        // Fallback en cas d'erreur
+        setUserName({ prenom: 'Utilisateur', nom: '' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserName();
+  }, []);
 
   // Données d'exemple pour le calendrier
   const calendarData = {
@@ -82,9 +117,9 @@ const Dashboard = () => {
           <button className="nav-item active" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-          <button className="nav-item" onClick={() => navigateTo('/rooms')}>
-            <div className="nav-icon rooms-icon"></div>
-          </button>
+            <button className="nav-item" onClick={() => navigateTo('/graduation')}>
+            <div className="nav-icon graduation-icon"></div>
+            </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>
           </button>
@@ -100,7 +135,9 @@ const Dashboard = () => {
       <div className="main-content">
         {/* En-tête avec nom utilisateur et notification */}
         <header className="dashboard-header">
-          <div className="user-info">User - accueil</div>
+          <div className="user-info">
+            {loading ? 'Chargement...' : `${userName.prenom} ${userName.nom}`}
+          </div>
           <div className="notification-icon"></div>
         </header>
 

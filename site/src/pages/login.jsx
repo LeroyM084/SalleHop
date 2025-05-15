@@ -9,7 +9,6 @@ const LoginPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
   // Utilisateur temporaire pour les tests
@@ -30,18 +29,56 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
-    // Vérification des identifiants
-    if (
-      credentials.email === testUser.email &&
-      credentials.password === testUser.password
-    ) {
-      navigate('/dashboard'); // Redirection vers le tableau de bord après connexion
-    } else {
-      setError('Identifiants incorrects');
+    
+    try {
+      // Correction des erreurs dans la requête fetch
+      const res = await fetch('http://10.111.60.225:8200/api/auth/login', {
+        method: 'POST', // 'method' au lieu de 'methods'
+        headers: { // 'headers' au lieu de 'header'
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: credentials.email,
+          motdepasse: credentials.password
+        })
+      });
+      
+      if (!res) {
+        setError('Problème de connection au serveur');
+        setLoading(false);
+        return;
+      }
+      
+      const resStatus = res.status;
+      
+      // Traitement de la réponse
+      if (resStatus === 200) {
+        // Récupérer les données de la réponse
+        const data = await res.json();
+        
+        // Stocker le token dans localStorage si présent
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+        }
+        
+        navigate('/dashboard'); // Redirection vers le tableau de bord après connexion
+      } else if (resStatus === 401) {
+        setError('Identifiants incorrects');
+      } else {
+        // Essayer de récupérer le message d'erreur du serveur
+        try {
+          const errorData = await res.json();
+          setError(errorData.message || 'Erreur de connexion');
+        } catch (jsonError) {
+          setError(`Erreur ${resStatus}: Échec de la connexion`);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      setError('Erreur de connexion au serveur. Vérifiez votre connexion internet.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleForgotPassword = () => {
@@ -56,18 +93,14 @@ const LoginPage = () => {
           <h1 className="logo">Semineo</h1>
           <span className="logo-subtitle">EDUCATION</span>
         </div>
-
         <div className="title-container">
           <h2 className="main-title">GESTION DES SALLES DE CLASSES</h2>
         </div>
-
         <div className="login-card">
           <div className="login-header">
             <h3>CONNEXION</h3>
           </div>
-
           {error && <div className="error-message">{error}</div>}
-
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <input
@@ -80,7 +113,6 @@ const LoginPage = () => {
                 required
               />
             </div>
-
             <div className="input-group">
               <input
                 type="password"
@@ -92,7 +124,6 @@ const LoginPage = () => {
                 required
               />
             </div>
-
             <div className="input-group">
               <button
                 type="submit"
@@ -103,7 +134,6 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
-
           <div className="forgot-password">
             <button
               className="forgot-password-link"

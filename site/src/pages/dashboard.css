@@ -72,7 +72,7 @@ button {
 .nav-icon {
   width: 24px;
   height: 24px;
-  background-color: #fff;
+  background-color: #383838;
 }
 
 .home-icon, .rooms-icon, .profile-icon, .settings-icon {
@@ -88,6 +88,12 @@ button {
 
 .rooms-icon {
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z'/%3E%3C/svg%3E");
+}
+.rooms-icon img {
+  width: 100%; /* L'image occupe toute la largeur de la div */
+  height: 100%; /* L'image occupe toute la hauteur de la div */
+  object-fit: cover; /* Ajuste l'image pour qu'elle remplisse la div sans déformation */
+  border-radius: 50%; /* Optionnel : rend l'image circulaire */
 }
 
 .profile-icon {
@@ -316,6 +322,14 @@ button {
 
 .notification-detail {
   font-size: 12px;
+}
+
+.graduation-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 2.18L18.82 9 12 12.82 5.18 9 12 5.18zM5 11v2c0 3.31 4.03 6 9 6s9-2.69 9-6v-2l-9 4.91L5 11z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: white;
 }
 
 /* Media Queries pour responsive */
