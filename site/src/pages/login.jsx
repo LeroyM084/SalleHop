@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import './login.css';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
     email: '',
-    motdepasse: ''
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const navigate = useNavigate();
-  const { login } = useAuth();
+
+  // Utilisateur temporaire pour les tests
+  const testUser = {
+    email: 'test@example.com',
+    password: 'password123'
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
       [name]: value
     }));
@@ -26,76 +31,84 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
 
-    try {
-      await login(credentials.email, credentials.motdepasse);
+    // Vérification des identifiants
+    if (
+      credentials.email === testUser.email &&
+      credentials.password === testUser.password
+    ) {
       navigate('/dashboard'); // Redirection vers le tableau de bord après connexion
-    } catch (err) {
-      setError(err.message || 'Une erreur est survenue lors de la connexion');
-    } finally {
-      setLoading(false);
+    } else {
+      setError('Identifiants incorrects');
     }
+
+    setLoading(false);
+  };
+
+  const handleForgotPassword = () => {
+    // Logique pour la réinitialisation du mot de passe
+    console.log('Mot de passe oublié');
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <h1 className="text-3xl font-bold">Semineo</h1>
+    <div className="login-container">
+      <div className="login-card-container">
+        <div className="logo-container">
+          <h1 className="logo">Semineo</h1>
+          <span className="logo-subtitle">EDUCATION</span>
         </div>
-        
-        <div className="text-center mb-4">
-          <h2 className="text-sm uppercase text-gray-600">GESTION DES SALLES DE CLASSES</h2>
+
+        <div className="title-container">
+          <h2 className="main-title">GESTION DES SALLES DE CLASSES</h2>
         </div>
-        
-        <div className="bg-gray-700 rounded-md shadow-md p-6">
-          <div className="text-center mb-6">
-            <h3 className="text-white">CONNEXION</h3>
+
+        <div className="login-card">
+          <div className="login-header">
+            <h3>CONNEXION</h3>
           </div>
-          
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
-              {error}
-            </div>
-          )}
-          
-          <div>
-            <div className="mb-4">
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="input-group">
               <input
                 type="text"
                 name="email"
                 placeholder="Email ou nom d'utilisateur"
                 value={credentials.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded focus:outline-none"
+                className="input-field"
+                required
               />
             </div>
-            
-            <div className="mb-4">
+
+            <div className="input-group">
               <input
                 type="password"
-                name="motdepasse"
+                name="password"
                 placeholder="Mot de passe"
-                value={credentials.motdepasse}
+                value={credentials.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded focus:outline-none"
+                className="input-field"
+                required
               />
             </div>
-            
-            <div className="mb-4">
+
+            <div className="input-group">
               <button
-                onClick={handleSubmit}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+                type="submit"
+                className="login-button"
                 disabled={loading}
               >
                 {loading ? 'CONNEXION EN COURS...' : 'SE CONNECTER'}
               </button>
             </div>
-          </div>
-          
-          <div className="text-center">
-            <button 
-              className="text-gray-400 text-sm hover:text-white"
-              onClick={() => console.log('Mot de passe oublié')}
+          </form>
+
+          <div className="forgot-password">
+            <button
+              className="forgot-password-link"
+              onClick={handleForgotPassword}
+              type="button"
             >
               Mot de passe oublié ?
             </button>
