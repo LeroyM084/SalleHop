@@ -30,6 +30,7 @@ const Membre = sequelize.define('Membre', {
     idCampus: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field : 'id_campus',
         references: {
             model: 'campus',
             key: 'id',

@@ -1,5 +1,5 @@
 const app = require('./server')
-const PORT = 3000 // port de base, peut changer -- DEBUG
+const PORT = 8200 // port de base, peut changer -- DEBUG
 
 /*
 @TODO 
@@ -11,5 +11,5 @@ de WireShark sinon.
 
 app.listen(PORT, () => {
     console.log('SalleHop en ligne ! ✅')
-    console.log('Début de l\'API : http://localhost:${PORT}')
+    console.log('Début de l\'API : http://localhost:',PORT)
 })

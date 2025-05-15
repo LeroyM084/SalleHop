@@ -106,4 +106,4 @@ Route oublier mot de passe (/profile/passwordForget)
 -> Renvoie l'user sur la page de changement de mot de passe 
  */
 
-module.export = router
+module.exports = router

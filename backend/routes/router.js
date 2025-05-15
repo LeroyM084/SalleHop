@@ -4,3 +4,5 @@ const router = express.Router();
 
 router.use('/auth', require('./authRouter')); // /api/users/"Routes présentes dans authRouter.js" 
 router.use('/profile', require('./profileRouter')) // /api/profile/"routes dans le routeur"
+
+module.exports = router;

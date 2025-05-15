@@ -9,9 +9,14 @@ const addMembre = require('../controllers/userCreation'); // On importe le contr
 const createToken = require('../middleware/tokenCreation'); // On importe le middleware pour la création de token
 const { signUpSchema, loginSchema } = require('../middleware/schemas/authSchemas'); // On importe le middleware de validation
 const validate = require('../middleware/dataTypeVerification')
+const isUserAdmin = require('../middleware/isUserAdmin')
+const tokenValidation = require('../middleware/tokenValidation')
+const JWT_KEY = process.env.JWT_SECRET
 
 
 router.post('/signup', 
+    tokenValidation,
+    isUserAdmin,
     validate(signUpSchema), // On utilise le middleware de validation pour vérifier les données
     async (req, res) => {
     const { nom, prenom, email, campusName, motdepasse } = req.body;
@@ -33,7 +38,6 @@ router.post('/signup',
         const hashedPassword = await bcrypt.hash(motdepasse, 10);
         const newUser = await addMembre(nom, prenom, email, campus.id, hashedPassword);
 
-        const token = createToken(newUser.id, newUser.email);
         res.status(201).json({
             token,
             user: {
@@ -51,7 +55,7 @@ router.post('/signup',
 });
 
 router.post('/login', 
-    validate(loginSchema), // On utilise le middleware de validation pour vérifier les données
+    // validate(loginSchema), // On utilise le middleware de validation pour vérifier les données
     async (req, res) => {
     const { email, motdepasse } = req.body;
 
@@ -83,8 +87,8 @@ router.post('/login',
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        res.status(500).json({ message: 'Une erreur est survenue lors de la connexion' });
+        res.status(500).json({ message: 'Une erreur est survenue lors de la connexion', error });
     }
 });
 
-module.export = router
+module.exports = router
