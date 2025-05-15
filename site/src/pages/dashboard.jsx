@@ -117,7 +117,7 @@ const Dashboard = () => {
           <button className="nav-item active" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-            <button className="nav-item" onClick={() => navigateTo('/graduation')}>
+            <button className="nav-item" onClick={() => navigateTo('/reservation')}>
             <div className="nav-icon graduation-icon"></div>
             </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
@@ -142,8 +142,8 @@ const Dashboard = () => {
         </header>
 
         {/* Section calendrier */}
-        <section className="calendar-section">
-          <div className="calendar-header">
+        <section className="dashboard-calendar-section">
+          <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>Semaine {currentWeek}</span>
               <div className="navigation-buttons">
@@ -157,7 +157,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <div className="calendar-grid">
+          <div className="dashboard-calendar-grid">
             {/* En-tête des jours */}
             <div className="time-header"></div>
             {calendarData.days.map((day, index) => (
@@ -172,11 +172,11 @@ const Dashboard = () => {
                 {calendarData.days.map((day, dayIndex) => {
                   const events = getEventsForTimeSlot(day, slot.time);
                   return (
-                    <div key={`${slot.id}-${dayIndex}`} className="calendar-cell">
+                    <div key={`${slot.id}-${dayIndex}`} className="dashboard-calendar-cell">
                       {events.map(event => (
                         <div 
                           key={event.id} 
-                          className={`calendar-event ${getEventClass(event.type)}`}
+                          className={`dashboard-calendar-event ${getEventClass(event.type)}`}
                         >
                           <div className="event-title">{event.room}</div>
                           <div className="event-type">{event.type}</div>
