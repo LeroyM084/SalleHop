@@ -5,4 +5,10 @@ const router = express.Router();
 router.use('/auth', require('./authRouter')); // /api/users/"Routes présentes dans authRouter.js" 
 router.use('/profile', require('./profileRouter')) // /api/profile/"routes dans le routeur"
 
+router.get('/', async(req,res)=>{
+    return res.status(200).json({
+        message : "Bienvenue sur l'API de SalleHOP" // -- DEBUG
+    })
+})
+
 module.exports = router;

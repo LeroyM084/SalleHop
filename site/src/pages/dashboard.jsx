@@ -12,7 +12,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserName = async () => {
       try {
-        const res = await fetch('http://10.111.60.225:8200/api/profile/name', {
+        const res = await fetch('http://localhost:8200/api/profile/name', {
           method: 'GET', // Correction de 'methods' en 'method'
           headers: {
             'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ const Dashboard = () => {
           }
         });
 
-        if (!res.ok) {
+        if (res.status !== 200 ) {
           throw new Error('Erreur lors de la récupération des données utilisateur');
         }
 
@@ -29,6 +29,7 @@ const Dashboard = () => {
           prenom: data.prenom || '', 
           nom: data.nom || '' 
         });
+        console.log(data.prenom, data.nom)
       } catch (error) {
         console.error('Erreur:', error);
         // Fallback en cas d'erreur

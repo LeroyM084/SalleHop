@@ -99,23 +99,24 @@ router.put('/profile/password',
 }
 );
 
-router.get('/profile/name', tokenValidation, 
-    async(res) => {
+router.get('/name', tokenValidation, 
+    async(req, res) => {
         const userId = req.userId;
+        console.log("Juste la", userId);
         try{
-            const membre = await Membre.findByPk(userId, {
-            attributes: ['nom', 'prenom']
-            });
+            const user = await Membre.findByPk(4);
+            
 
-            const { nom, prenom } = membre || { nom: null, prenom: null };
-
-            if(! nom || !prenom){
+            if(! user){
                 return res.status(404).json({error : 'non trouvé'})
             }
 
+            const nom = user.nom 
+            const prenom = user.prenom 
+
             return res.status(200).json({
-                'nom' : nom,
-                'prenom' : prenom
+                nom : nom,
+                prenom : prenom
             })
 
 

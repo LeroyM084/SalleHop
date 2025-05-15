@@ -176,4 +176,57 @@ router.get('/resaEnAttente',
 }
 )
 
+campus.put('/resaEnAttente/:idReservation', 
+    tokenValidation, 
+    //validate(schema),
+    isUserAdmin, 
+    async(req,res)=>{
+        const id = req.params.idReservation
+        const userId = req.userId
+        const newState = req.body.newState 
+
+        if(!userId || !id || !newState){
+            return res.status(400).json({
+                error : "Bad request perso !", error
+            })
+        }
+
+        const reservation = await Reservation.findByPk(id);
+
+        if (!reservation){
+            return res.status(404).json({
+                error : "réservation introuvable", error
+            })
+        }
+
+        const isReservationEnAttente = reservation.status;
+        if(isReservationEnAttente !== 'En attente'){
+            res.status(405).json({
+                error : "La réservation à déjà été validé", error
+            })
+        }
+
+        if(newState !== "Accepté" && newState !== "Refusé"){
+            res.status(400).json({
+                message : "Mauvais status -> Bad request", error
+            })
+        }
+
+        try {
+        reservation.update({
+            status : newState
+        })
+
+        return res.status(200).json({
+            message : "Réservation mis à jour",
+            reservation
+        })
+    } catch(error){
+        return res.status(500).json({
+            error : "Erreur serveur", error
+        })
+    }
+    }
+)
+
 module.exports = router 
