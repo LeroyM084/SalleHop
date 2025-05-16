@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './dashboard.css';
+import RoomReservation from './reservation_user';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -53,17 +54,17 @@ const Dashboard = () => {
       { id: 6, time: '18h' }
     ],
     events: [
-      { id: 1, day: '27/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 2, day: '27/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 3, day: '28/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 4, day: '28/05', startTime: '14h', room: 'Informatique - 154', type: 'EPITECH' },
-      { id: 5, day: '29/05', startTime: '8h', room: 'Outlook - 3', type: 'IIM CDA' },
-      { id: 6, day: '29/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 7, day: '30/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 8, day: '30/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 9, day: '30/05', startTime: '16h', room: 'Sup de vinci - 1', type: 'Labo Cyber' },
-      { id: 10, day: '31/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 11, day: '31/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' }
+      { id: 1, day: '27/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 2, day: '27/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 3, day: '28/05', startTime: '8h00', endTime: '12h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 4, day: '28/05', startTime: '14h00', endTime: '16h00', room: 'Informatique - 154', type: 'EPITECH' },
+      { id: 5, day: '29/05', startTime: '8h00', endTime: '10h00', room: 'Outlook - 3', type: 'IIM CDA' },
+      { id: 6, day: '29/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 7, day: '30/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 8, day: '30/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 9, day: '30/05', startTime: '16h00', endTime: '18h00', room: 'Sup de vinci - 1', type: 'Labo Cyber' },
+      { id: 10, day: '31/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
+      { id: 11, day: '31/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' }
     ],
     notifications: [
       { id: 1, type: 'success', message: 'Sup de Vinci - 204 | 6 mai de 8h à 9h', detail: 'Votre réservation a été acceptée.' },
@@ -141,8 +142,7 @@ const Dashboard = () => {
           <div className="notification-icon"></div>
         </header>
 
-        {/* Section calendrier */}
-        <section className="dashboard-calendar-section">
+               <section className="dashboard-calendar-section">
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>Semaine {currentWeek}</span>
@@ -156,37 +156,69 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
-          <div className="dashboard-calendar-grid">
-            {/* En-tête des jours */}
-            <div className="time-header"></div>
-            {calendarData.days.map((day, index) => (
-              <div key={index} className="day-header">{day}</div>
-            ))}
-            
-            {/* Grille du calendrier avec créneaux horaires */}
-            {calendarData.timeSlots.map(slot => (
-              <React.Fragment key={slot.id}>
-                <div className="time-slot-label">{slot.time}</div>
-                
-                {calendarData.days.map((day, dayIndex) => {
-                  const events = getEventsForTimeSlot(day, slot.time);
-                  return (
-                    <div key={`${slot.id}-${dayIndex}`} className="dashboard-calendar-cell">
-                      {events.map(event => (
-                        <div 
-                          key={event.id} 
-                          className={`dashboard-calendar-event ${getEventClass(event.type)}`}
-                        >
-                          <div className="event-title">{event.room}</div>
-                          <div className="event-type">{event.type}</div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
+
+          {/* Nouveau calendrier type "body" */}
+          <div className="dashboard-calendar-body">
+            <div className="dashboard-calendar-sidebar">
+              {[8, 10, 12, 14, 16, 18].map((hour, i) => (
+                <div key={hour} className="dashboard-calendar-hour-label" style={{
+                  height: 'calc(100% / 6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  fontWeight: 'bold',
+                  fontSize: '15px',
+                  color: '#444',
+                  borderBottom: i < 5 ? '1px solid #e0e0e0' : 'none',
+                  paddingRight: 8,
+                  background: i % 2 === 0 ? '#f0f0f0' : '#e6e6e6'
+                }}>
+                  {hour}h
+                </div>
+              ))}
+            </div>
+            <div className="dashboard-calendar-columns">
+              {calendarData.days.map((day, dayIdx) => (
+                <div key={dayIdx} className="dashboard-calendar-day-column">
+                  <div className="dashboard-calendar-day-header">{day}</div>
+                  <div className="dashboard-calendar-day-body">
+                    {/* Affichage des rectangles pour chaque événement */}
+                    {calendarData.events
+                      .filter(ev => ev.day === day)
+                      .map((ev, idx) => {
+                        const getMinutes = (str) => {
+                          const [h, m] = str.split('h');
+                          return (parseInt(h) * 60 + parseInt(m || '0')) - (8 * 60);
+                        };
+                        const start = getMinutes(ev.startTime || '8h00');
+                        const end = getMinutes(ev.endTime || '10h00');
+                        const top = (start / 600) * 100;
+                        const height = ((end - start) / 600) * 100;
+                        let colorClass = 'event-default';
+                        if (ev.type === 'ESILV') colorClass = 'event-esilv';
+                        else if (ev.type === 'EPITECH') colorClass = 'event-epitech';
+                        else if (ev.type === 'IIM CDA') colorClass = 'event-iim';
+                        else if (ev.type === 'Labo Cyber') colorClass = 'event-cyber';
+                        return (
+                          <div
+                            key={idx}
+                            className={`dashboard-calendar-block ${colorClass}`}
+                            style={{
+                              top: `${top}%`,
+                              height: `${height}%`
+                            }}
+                          >
+                            <div className="dashboard-calendar-block-content">
+                              <div className="event-title">{ev.room}</div>
+                              <div className="event-type">{ev.type}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

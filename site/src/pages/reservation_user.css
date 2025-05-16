@@ -251,9 +251,12 @@ button {
 
 .day-column {
   flex: 1;
-  position: relative;
+  position: relative; /* Assure le positionnement absolu des réservations */
   border-right: 1px solid #ddd;
   height: 100%;
+  /* Ajout pour forcer le stacking context */
+  min-width: 0;
+  min-height: 0;
 }
 
 .day-column:last-child {
@@ -293,6 +296,12 @@ button {
   display: flex;
   flex-direction: column;
   transition: background-color 0.2s;
+  /* Ajout pour garantir le positionnement */
+  z-index: 3;
+  /* Ces propriétés sont gérées inline par React :
+     top: ...%;
+     height: ...%;
+  */
 }
 
 .booking-block:hover {
