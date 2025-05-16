@@ -62,11 +62,17 @@ const RoomReservation = () => {
   // Plage horaire de la journée (8h - 18h)
   const startHour = 8;
   const endHour = 18;
-  const totalHours = endHour - startHour;
+  const slotCount = (endHour - startHour) * 2; // 20 demi-heures
+
+  const timeSlots = Array.from({ length: slotCount + 1 }, (_, i) => {
+  const hour = startHour + Math.floor(i / 2);
+  const min = i % 2 === 0 ? '00' : '30';
+  return `${hour}h${min}`;
+});
 
   // Exemple de réservations existantes
   const bookings = [
-    { day: '27/05', start: '8h00', end: '12h00', title: 'Cours B3DEV' },
+    { day: '27/05', start: '8h00', end: '13h30', title: 'Cours B3DEV' },
     { day: '27/05', start: '14h00', end: '16h00', title: 'Réunion' },
     { day: '28/05', start: '9h00', end: '12h00', title: 'TD M1INFO' },
     { day: '29/05', start: '10h00', end: '11h00', title: 'Soutien' },
@@ -83,17 +89,24 @@ const RoomReservation = () => {
   };
 
   // Fonction pour calculer la position et la hauteur d'une réservation
-  const calculateBookingPosition = (booking) => {
-    const startOffset = getHourValue(booking.start);
-    const endOffset = getHourValue(booking.end);
-    const duration = endOffset - startOffset;
-    
-    // Calculer la position top et la hauteur en pourcentage de la journée totale
-    const top = (startOffset / totalHours) * 100;
-    const height = (duration / totalHours) * 100;
-    
-    return { top, height };
+const calculateBookingPosition = (booking) => {
+  const getMinutes = (str) => {
+    const [h, m] = str.split('h');
+    const hour = parseInt(h, 10);
+    const min = parseInt(m || '0', 10);
+    if (isNaN(hour) || isNaN(min)) return 0;
+    return (hour * 60 + min) - (startHour * 60);
   };
+  const startOffset = getMinutes(booking.start);
+  const endOffset = getMinutes(booking.end);
+  const duration = endOffset - startOffset;
+
+  const totalMinutes = (endHour - startHour) * 60;
+  const top = (startOffset / totalMinutes) * 100;
+  const height = (duration / totalMinutes) * 100;
+
+  return { top, height };
+};
 
   // Fonction pour la réservation d'une salle
   const handleReservation = () => {
@@ -206,51 +219,52 @@ const RoomReservation = () => {
                 ))}
               </div>
               
-              <div className="reservation_user-calendar-body">
-                <div className="calendar-time-indicators">
-                  {Array.from({ length: totalHours + 1 }).map((_, index) => (
-                    <div key={index} className="time-indicator">
-                      {`${startHour + index}h00`}
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="calendar-columns-container">
-                  {weekdays.map((day, dayIndex) => (
-                    <div key={dayIndex} className="day-column">
-                      {/* Lignes horaires pour la grille visuelle */}
-                      {Array.from({ length: totalHours }).map((_, hourIndex) => (
-                        <div key={hourIndex} className="hour-line"></div>
-                      ))}
-                      
-                      {/* Réservations pour ce jour */}
-                      {bookings
-                        .filter(booking => booking.day === day)
-                        .map((booking, bookingIndex) => {
-                          const { top, height } = calculateBookingPosition(booking);
-                          return (
-                            <div
-                              key={bookingIndex}
-                              className="booking-block"
-                              style={{
-                                top: `${top}%`,
-                                height: `${height}%`
-                              }}
-                            >
-                              <div className="booking-content">
-                                <div className="booking-time">
-                                  {booking.start} - {booking.end}
-                                </div>
-                                <div className="booking-title">
-                                  {booking.title}
-                                </div>
+             <div className="reservation_user-calendar-body">
+              <div className="calendar-time-indicators">
+                {timeSlots.map((slot, idx) => (
+                  <div key={idx} className="time-indicator">
+                    {slot}
+                  </div>
+                ))}
+              </div>
+              <div className="calendar-columns-container">
+                {weekdays.map((day, dayIndex) => (
+                  <div key={dayIndex} className="day-column">
+                    {/* Lignes horaires pour la grille visuelle */}
+                    {timeSlots.slice(1).map((_, slotIdx) => (
+                      <div
+                        key={slotIdx}
+                        className="hour-line"
+                        style={{ top: `${(slotIdx / slotCount) * 100}%` }}
+                      ></div>
+                    ))}
+                    {/* Réservations pour ce jour */}
+                    {bookings
+                      .filter(booking => booking.day === day)
+                      .map((booking, bookingIndex) => {
+                        const { top, height } = calculateBookingPosition(booking);
+                        return (
+                          <div
+                            key={bookingIndex}
+                            className="booking-block"
+                            style={{
+                              top: `${top}%`,
+                              height: `${height}%`
+                            }}
+                          >
+                            <div className="booking-content">
+                              <div className="booking-time">
+                                {booking.start} - {booking.end}
+                              </div>
+                              <div className="booking-title">
+                                {booking.title}
                               </div>
                             </div>
-                          );
-                        })}
-                    </div>
-                  ))}
-                </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ))}
               </div>
             </div>
             
@@ -260,6 +274,7 @@ const RoomReservation = () => {
               </button>
             </div>
           </div>
+        </div>
         </section>
       </div>
     </div>
