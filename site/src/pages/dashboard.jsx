@@ -117,9 +117,9 @@ const Dashboard = () => {
           <button className="nav-item active" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-            <button className="nav-item" onClick={() => navigateTo('/reservation')}>
-            <div className="nav-icon graduation-icon"></div>
-            </button>
+          <button className="nav-item" onClick={() => navigateTo('/reservation')}>
+            <img src={require('../image/icon.png')} alt="Réservation" className="nav-img-icon" />
+          </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>
           </button>
@@ -136,7 +136,7 @@ const Dashboard = () => {
         {/* En-tête avec nom utilisateur et notification */}
         <header className="dashboard-header">
           <div className="user-info">
-            {loading ? 'Chargement...' : `${userName.prenom} ${userName.nom}`}
+            Accueil
           </div>
           <div className="notification-icon"></div>
         </header>

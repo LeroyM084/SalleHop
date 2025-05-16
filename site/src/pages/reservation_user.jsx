@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './reservation_user.css';
@@ -59,46 +58,41 @@ const RoomReservation = () => {
 
   // Données d'exemple pour le calendrier de disponibilité
   const weekdays = ['27/05', '28/05', '29/05', '30/05', '31/05', '01/06', '02/06'];
-  const timeSlots = ['8h00', '9h00', '10h00', '11h00', '12h00', '13h00', '14h00', '15h00', '16h00', '17h00'];
+  
+  // Plage horaire de la journée (8h - 18h)
+  const startHour = 8;
+  const endHour = 18;
+  const totalHours = endHour - startHour;
 
-  // Exemple de réservations existantes (pour illustrer les créneaux indisponibles)
+  // Exemple de réservations existantes
   const bookings = [
-    { day: '27/05', start: '8h00', end: '13h00' },
-    { day: '27/05', start: '14h00', end: '16h00' },
-    { day: '28/05', start: '9h00', end: '12h00' },
-    { day: '29/05', start: '10h00', end: '11h00' },
-    { day: '30/05', start: '8h00', end: '10h00' },
-    { day: '30/05', start: '14h00', end: '17h00' },
-    { day: '31/05', start: '8h00', end: '10h00' },
-    { day: '31/05', start: '15h00', end: '17h00' },
+    { day: '27/05', start: '8h00', end: '12h00', title: 'Cours B3DEV' },
+    { day: '27/05', start: '14h00', end: '16h00', title: 'Réunion' },
+    { day: '28/05', start: '9h00', end: '12h00', title: 'TD M1INFO' },
+    { day: '29/05', start: '10h00', end: '11h00', title: 'Soutien' },
+    { day: '30/05', start: '8h00', end: '10h00', title: 'Cours B2DEV' },
+    { day: '30/05', start: '14h00', end: '17h00', title: 'TP M2DATA' },
+    { day: '31/05', start: '8h00', end: '10h00', title: 'Conférence' },
+    { day: '31/05', start: '15h00', end: '17h00', title: 'Atelier' },
   ];
 
-  // Vérifier si un créneau est disponible
-  const isSlotAvailable = (day, time) => {
-    return !bookings.some(booking => 
-      booking.day === day && 
-      time >= booking.start && 
-      time < booking.end
-    );
+  // Fonction pour convertir un format horaire "Xh00" en nombre d'heures depuis le début de la journée
+  const getHourValue = (timeStr) => {
+    const hour = parseInt(timeStr.split('h')[0]);
+    return hour - startHour; // Nombre d'heures depuis le début (8h)
   };
 
-  // Fonction pour vérifier si un créneau est réservé
-const getBookingForSlot = (day, time) => {
-  return bookings.find(
-    (booking) => booking.day === day && time === booking.start
-  );
-};
-
-// Fonction pour calculer la durée d'une réservation
-const getSlotSpan = (booking) => {
-  const startIndex = timeSlots.indexOf(booking.start);
-  const endIndex = timeSlots.indexOf(booking.end);
-  return endIndex - startIndex; // Nombre de créneaux occupés
-};
-
-  // Fonction pour déterminer la classe CSS d'un créneau horaire
-  const getTimeSlotClass = (day, time) => {
-    return isSlotAvailable(day, time) ? 'time-slot available' : 'time-slot unavailable';
+  // Fonction pour calculer la position et la hauteur d'une réservation
+  const calculateBookingPosition = (booking) => {
+    const startOffset = getHourValue(booking.start);
+    const endOffset = getHourValue(booking.end);
+    const duration = endOffset - startOffset;
+    
+    // Calculer la position top et la hauteur en pourcentage de la journée totale
+    const top = (startOffset / totalHours) * 100;
+    const height = (duration / totalHours) * 100;
+    
+    return { top, height };
   };
 
   // Fonction pour la réservation d'une salle
@@ -123,8 +117,8 @@ const getSlotSpan = (booking) => {
           <button className="nav-item" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-          <button className="nav-item active" onClick={() => navigateTo('/reservation')}>
-            <div className="nav-icon rooms-icon"></div>
+          <button className="nav-item" onClick={() => navigateTo('/reservation')}>
+            <img src={require('../image/icon.png')} alt="Réservation" className="nav-img-icon" />
           </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>
@@ -142,7 +136,7 @@ const getSlotSpan = (booking) => {
         {/* En-tête avec nom utilisateur et notification */}
         <header className="dashboard-header">
           <div className="user-info">
-            {loading ? 'Chargement...' : `${userName.prenom} ${userName.nom}`}
+            Réservations
           </div>
           <div className="notification-icon"></div>
         </header>
@@ -212,42 +206,52 @@ const getSlotSpan = (booking) => {
                 ))}
               </div>
               
-            <div className="reservation_user-calendar-body">
-            {timeSlots.map((time, timeIndex) => (
-                <div key={timeIndex} className="time-row">
-                {weekdays.map((day, dayIndex) => {
-                    const booking = getBookingForSlot(day, time);
-                    if (booking) {
-                    const slotSpan = getSlotSpan(booking);
-                    return (
-                        <div
-                        key={`${dayIndex}-${timeIndex}`}
-                        className="time-slot reserved"
-                        style={{ gridRow: `span ${slotSpan}` }}
-                        data-day={day}
-                        data-time={time}
-                        >
-                        <div className="slot-content reserved">
-                            Réservé ({booking.start} - {booking.end})
-                        </div>
-                        </div>
-                    );
-                    } else {
-                    return (
-                        <div
-                        key={`${dayIndex}-${timeIndex}`}
-                        className="time-slot available"
-                        data-day={day}
-                        data-time={time}
-                        >
-                        <div className="slot-content available"></div>
-                        </div>
-                    );
-                    }
-                })}
+              <div className="reservation_user-calendar-body">
+                <div className="calendar-time-indicators">
+                  {Array.from({ length: totalHours + 1 }).map((_, index) => (
+                    <div key={index} className="time-indicator">
+                      {`${startHour + index}h00`}
+                    </div>
+                  ))}
                 </div>
-            ))}
-            </div>
+                
+                <div className="calendar-columns-container">
+                  {weekdays.map((day, dayIndex) => (
+                    <div key={dayIndex} className="day-column">
+                      {/* Lignes horaires pour la grille visuelle */}
+                      {Array.from({ length: totalHours }).map((_, hourIndex) => (
+                        <div key={hourIndex} className="hour-line"></div>
+                      ))}
+                      
+                      {/* Réservations pour ce jour */}
+                      {bookings
+                        .filter(booking => booking.day === day)
+                        .map((booking, bookingIndex) => {
+                          const { top, height } = calculateBookingPosition(booking);
+                          return (
+                            <div
+                              key={bookingIndex}
+                              className="booking-block"
+                              style={{
+                                top: `${top}%`,
+                                height: `${height}%`
+                              }}
+                            >
+                              <div className="booking-content">
+                                <div className="booking-time">
+                                  {booking.start} - {booking.end}
+                                </div>
+                                <div className="booking-title">
+                                  {booking.title}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             
             <div className="reservation-footer">

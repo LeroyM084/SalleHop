@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
 import LoginPage from './pages/login';
 import Dashboard from './pages/dashboard';
+import Profile from './pages/profile';
 import Reservation_user from './pages/reservation_user';
 import { AuthProvider } from './context/AuthContext';
 
@@ -15,7 +16,8 @@ root.render(
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/reservation" element={<Reservation_user />} />
+          <Route path="/reservation" element={<Reservation_user />} />*
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
