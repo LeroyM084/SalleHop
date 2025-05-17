@@ -58,6 +58,9 @@ const LoginPage: React.FC = () => {
           <div className="forgot-password">
             <a href="#">Mot de passe oublié ?</a>
           </div>
+          <div className="create-account">
+            <button className="btn btn-secondary">CRÉER UN COMPTE</button>
+          </div>
         </div>
       </div>
     </div>
