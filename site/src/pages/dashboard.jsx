@@ -4,45 +4,89 @@ import './dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [reservations, setReservations] = useState([]);
   const [currentWeek, setCurrentWeek] = useState(31);
   const [userName, setUserName] = useState({ prenom: '', nom: '' });
   const [loading, setLoading] = useState(true);
 
-  // Récupérer le nom et prénom de l'utilisateur au chargement du composant
+  // Récupérer les réservations et le nom/prénom de l'utilisateur
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:8200/api/profile/name', {
-          method: 'GET', // Correction de 'methods' en 'method'
+        const res = await fetch('http://localhost:8200/api/reservations/mesReservations', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Ajout d'un espace après 'Bearer' et utilisation de getItem
+            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
           }
         });
 
-        if (res.status !== 200 ) {
+        if (!res.ok) {
+          console.log('engine kaput');
+          return;
+        }
+
+        const jsonRes = await res.json();
+        setReservations(jsonRes.reservations || []);
+        console.log(jsonRes.reservations);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchUserName = async () => {
+      try {
+        const res = await fetch('http://localhost:8200/api/profile/name', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+          }
+        });
+
+        if (!res.ok) {
           throw new Error('Erreur lors de la récupération des données utilisateur');
         }
 
         const data = await res.json();
-        setUserName({ 
-          prenom: data.prenom || '', 
-          nom: data.nom || '' 
+        setUserName({
+          prenom: data.prenom || '',
+          nom: data.nom || ''
         });
-        console.log(data.prenom, data.nom)
       } catch (error) {
         console.error('Erreur:', error);
-        // Fallback en cas d'erreur
         setUserName({ prenom: 'Utilisateur', nom: '' });
       } finally {
         setLoading(false);
       }
     };
 
+    fetchEvents();
     fetchUserName();
   }, []);
 
-  // Données d'exemple pour le calendrier
+  // Transforme les réservations en events pour le calendrier
+  const events = reservations.map(res => {
+    // Format jour : "27/05"
+    const [year, month, day] = res.date.split('-');
+    const dayStr = `${day}/${month}`;
+
+    // Format heure : "10:00:00" -> "10h00"
+    const formatHeure = (heure) => {
+      const [h, m] = heure.split(':');
+      return `${h}h${m}`;
+    };
+
+    return {
+      id: res.id,
+      day: dayStr,
+      startTime: formatHeure(res.heureDebut),
+      endTime: formatHeure(res.heureFin),
+      room: String(res.idSalle),
+      type: 'sup de vinci'
+    };
+  });
+
   const calendarData = {
     days: ['27/05', '28/05', '29/05', '30/05', '31/05'],
     timeSlots: [
@@ -53,26 +97,13 @@ const Dashboard = () => {
       { id: 5, time: '16h' },
       { id: 6, time: '18h' }
     ],
-    events: [
-      { id: 1, day: '27/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 2, day: '27/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 3, day: '28/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 4, day: '28/05', startTime: '14h', room: 'Informatique - 154', type: 'EPITECH' },
-      { id: 5, day: '29/05', startTime: '8h', room: 'Outlook - 3', type: 'IIM CDA' },
-      { id: 6, day: '29/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 7, day: '30/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 8, day: '30/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 9, day: '30/05', startTime: '16h', room: 'Sup de vinci - 1', type: 'Labo Cyber' },
-      { id: 10, day: '31/05', startTime: '8h', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 11, day: '31/05', startTime: '14h', room: 'Sup de vinci - 204', type: 'ESILV' }
-    ],
+    events, // <-- On injecte la vraie liste ici
     notifications: [
       { id: 1, type: 'success', message: 'Sup de Vinci - 204 | 6 mai de 8h à 9h', detail: 'Votre réservation a été acceptée.' },
       { id: 2, type: 'info', message: 'Sup de Vinci - 204 | 6 mai de 10h à 14h', detail: 'Vous avez été ajouté à un cours.' }
     ]
   };
 
-  // Fonctions pour la navigation dans le calendrier
   const previousWeek = () => {
     setCurrentWeek(currentWeek - 1);
   };
@@ -81,12 +112,10 @@ const Dashboard = () => {
     setCurrentWeek(currentWeek + 1);
   };
 
-  // Fonction pour trouver les événements à une date et heure spécifiques
   const getEventsForTimeSlot = (day, time) => {
     return calendarData.events.filter(event => event.day === day && event.startTime === time);
   };
 
-  // Fonction pour déterminer la classe CSS en fonction du type d'événement
   const getEventClass = (type) => {
     switch (type) {
       case 'ESILV':
@@ -102,7 +131,6 @@ const Dashboard = () => {
     }
   };
 
-  // Fonction pour aller vers une autre page
   const navigateTo = (path) => {
     navigate(path);
   };
@@ -118,9 +146,9 @@ const Dashboard = () => {
           <button className="nav-item active" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-            <button className="nav-item" onClick={() => navigateTo('/graduation')}>
-            <div className="nav-icon graduation-icon"></div>
-            </button>
+          <button className="nav-item" onClick={() => navigateTo('/reservation')}>
+            <img src={require('../image/icon.png')} alt="Réservation" className="nav-img-icon" />
+          </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>
           </button>
@@ -137,14 +165,13 @@ const Dashboard = () => {
         {/* En-tête avec nom utilisateur et notification */}
         <header className="dashboard-header">
           <div className="user-info">
-            {loading ? 'Chargement...' : `${userName.prenom} ${userName.nom}`}
+            Accueil {userName.prenom} {userName.nom}
           </div>
           <div className="notification-icon"></div>
         </header>
 
-        {/* Section calendrier */}
-        <section className="calendar-section">
-          <div className="calendar-header">
+        <section className="dashboard-calendar-section">
+          <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>Semaine {currentWeek}</span>
               <div className="navigation-buttons">
@@ -157,37 +184,70 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
-          <div className="calendar-grid">
-            {/* En-tête des jours */}
-            <div className="time-header"></div>
-            {calendarData.days.map((day, index) => (
-              <div key={index} className="day-header">{day}</div>
-            ))}
-            
-            {/* Grille du calendrier avec créneaux horaires */}
-            {calendarData.timeSlots.map(slot => (
-              <React.Fragment key={slot.id}>
-                <div className="time-slot-label">{slot.time}</div>
-                
-                {calendarData.days.map((day, dayIndex) => {
-                  const events = getEventsForTimeSlot(day, slot.time);
-                  return (
-                    <div key={`${slot.id}-${dayIndex}`} className="calendar-cell">
-                      {events.map(event => (
-                        <div 
-                          key={event.id} 
-                          className={`calendar-event ${getEventClass(event.type)}`}
-                        >
-                          <div className="event-title">{event.room}</div>
-                          <div className="event-type">{event.type}</div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
+
+          {/* Nouveau calendrier type "body" */}
+          <div className="dashboard-calendar-body">
+            <div className="dashboard-calendar-sidebar">
+              {[8, 10, 12, 14, 16, 18].map((hour, i) => (
+                <div key={hour} className="dashboard-calendar-hour-label" style={{
+                  height: i === 5 ? 'calc(100% / 12)' : 'calc(200% / 12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  fontWeight: 'bold',
+                  fontSize: '15px',
+                  color: '#444',
+                  borderBottom: i < 5 ? '1px solid #e0e0e0' : 'none',
+                  paddingRight: 8,
+                  background: i % 2 === 0 ? '#f0f0f0' : '#e6e6e6'
+                }}>
+                  {hour}h
+                </div>
+              ))}
+            </div>
+            <div className="dashboard-calendar-columns">
+              {calendarData.days.map((day, dayIdx) => (
+                <div key={dayIdx} className="dashboard-calendar-day-column">
+                  <div className="dashboard-calendar-day-header">{day}</div>
+                  <div className="dashboard-calendar-day-body">
+                    {/* Affichage des rectangles pour chaque événement */}
+                    {calendarData.events
+                      .filter(ev => ev.day === day)
+                      .map((ev, idx) => {
+                        const getMinutes = (str) => {
+                          const [h, m] = str.split('h');
+                          return (parseInt(h) * 60 + parseInt(m || '0')) - (8 * 60);
+                        };
+                        const start = getMinutes(ev.startTime || '8h00');
+                        const end = getMinutes(ev.endTime || '10h00');
+                        const top = (start / 600) * 100;
+                        const height = ((end - start) / 600) * 100;
+                        let colorClass = 'event-default';
+                        if (ev.type === 'ESILV') colorClass = 'event-esilv';
+                        else if (ev.type === 'EPITECH') colorClass = 'event-epitech';
+                        else if (ev.type === 'IIM CDA') colorClass = 'event-iim';
+                        else if (ev.type === 'Labo Cyber') colorClass = 'event-cyber';
+                        else if (ev.type === 'sup de vinci') colorClass = 'event-esilv';
+                        return (
+                          <div
+                            key={idx}
+                            className={`dashboard-calendar-block ${colorClass}`}
+                            style={{
+                              top: `${top}%`,
+                              height: `${height}%`
+                            }}
+                          >
+                            <div className="dashboard-calendar-block-content">
+                              <div className="event-title">{ev.room}</div>
+                              <div className="event-type">{ev.type}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

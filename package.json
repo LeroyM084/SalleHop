@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:sync":"node backend/scripts/syncDataBase",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start ./backend/start.js --name salleHop-back && pm2 start npm --name sallehop-front -- start --prefix site"
   },
   "repository": {
     "type": "git",

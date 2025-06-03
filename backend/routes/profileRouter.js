@@ -104,7 +104,7 @@ router.get('/name', tokenValidation,
         const userId = req.userId;
         console.log("Juste la", userId);
         try{
-            const user = await Membre.findByPk(4);
+            const user = await Membre.findByPk(userId);
             
 
             if(! user){
