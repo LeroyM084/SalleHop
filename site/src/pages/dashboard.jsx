@@ -1,23 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import './dashboard.css';
-import RoomReservation from './reservation_user';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState(31);
   const [userName, setUserName] = useState({ prenom: '', nom: '' });
   const [loading, setLoading] = useState(true);
+  const calendarRef = useRef(null);
 
   // Récupérer le nom et prénom de l'utilisateur au chargement du composant
   useEffect(() => {
     const fetchUserName = async () => {
       try {
         const res = await fetch('http://10.111.60.225:8200/api/profile/name', {
-          method: 'GET', // Correction de 'methods' en 'method'
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Ajout d'un espace après 'Bearer' et utilisation de getItem
+            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
           }
         });
 
@@ -32,7 +36,6 @@ const Dashboard = () => {
         });
       } catch (error) {
         console.error('Erreur:', error);
-        // Fallback en cas d'erreur
         setUserName({ prenom: 'Utilisateur', nom: '' });
       } finally {
         setLoading(false);
@@ -41,70 +44,226 @@ const Dashboard = () => {
 
     fetchUserName();
   }, []);
+// Remplacez la section des événements dans votre composant Dashboard par ceci :
 
-  // Données d'exemple pour le calendrier
-  const calendarData = {
-    days: ['27/05', '28/05', '29/05', '30/05', '31/05'],
-    timeSlots: [
-      { id: 1, time: '8h' },
-      { id: 2, time: '10h' },
-      { id: 3, time: '12h' },
-      { id: 4, time: '14h' },
-      { id: 5, time: '16h' },
-      { id: 6, time: '18h' }
-    ],
-    events: [
-      { id: 1, day: '27/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 2, day: '27/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 3, day: '28/05', startTime: '8h00', endTime: '12h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 4, day: '28/05', startTime: '14h00', endTime: '16h00', room: 'Informatique - 154', type: 'EPITECH' },
-      { id: 5, day: '29/05', startTime: '8h00', endTime: '10h00', room: 'Outlook - 3', type: 'IIM CDA' },
-      { id: 6, day: '29/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 7, day: '30/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 8, day: '30/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 9, day: '30/05', startTime: '16h00', endTime: '18h00', room: 'Sup de vinci - 1', type: 'Labo Cyber' },
-      { id: 10, day: '31/05', startTime: '8h00', endTime: '10h00', room: 'Sup de vinci - 204', type: 'ESILV' },
-      { id: 11, day: '31/05', startTime: '14h00', endTime: '16h00', room: 'Sup de vinci - 204', type: 'ESILV' }
-    ],
-    notifications: [
-      { id: 1, type: 'success', message: 'Sup de Vinci - 204 | 6 mai de 8h à 9h', detail: 'Votre réservation a été acceptée.' },
-      { id: 2, type: 'info', message: 'Sup de Vinci - 204 | 6 mai de 10h à 14h', detail: 'Vous avez été ajouté à un cours.' }
-    ]
-  };
+// Fonction pour obtenir les dates de la semaine actuelle
+const getCurrentWeekDates = () => {
+  const today = new Date();
+  const currentDay = today.getDay();
+  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Lundi = 1
+  
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    dates.push(date.toISOString().split('T')[0]); // Format YYYY-MM-DD
+  }
+  
+  return dates;
+};
 
-  // Fonctions pour la navigation dans le calendrier
+const weekDates = getCurrentWeekDates();
+
+// Événements formatés pour FullCalendar avec dates actuelles
+const events = [
+  {
+    id: '1',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[0]}T08:00:00`, // Lundi 8h-10h
+    end: `${weekDates[0]}T12:30:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '2',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[0]}T14:00:00`, // Lundi 14h-16h
+    end: `${weekDates[0]}T16:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '3',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[1]}T08:00:00`, // Mardi 8h-12h
+    end: `${weekDates[1]}T12:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '4',
+    title: 'Informatique - 154',
+    start: `${weekDates[1]}T14:00:00`, // Mardi 14h-16h
+    end: `${weekDates[1]}T16:00:00`,
+    backgroundColor: '#90ee90',
+    borderColor: '#90ee90',
+    textColor: '#000000',
+    extendedProps: {
+      type: 'EPITECH',
+      room: 'Informatique - 154'
+    }
+  },
+  {
+    id: '5',
+    title: 'Outlook - 3',
+    start: `${weekDates[2]}T08:00:00`, // Mercredi 8h-10h
+    end: `${weekDates[2]}T10:00:00`,
+    backgroundColor: '#87cefa',
+    borderColor: '#87cefa',
+    textColor: '#000000',
+    extendedProps: {
+      type: 'IIM CDA',
+      room: 'Outlook - 3'
+    }
+  },
+  {
+    id: '6',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[2]}T14:00:00`, // Mercredi 14h-16h
+    end: `${weekDates[2]}T16:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '7',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[3]}T08:00:00`, // Jeudi 8h-10h
+    end: `${weekDates[3]}T10:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '8',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[3]}T14:00:00`, // Jeudi 14h-16h
+    end: `${weekDates[3]}T16:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '9',
+    title: 'Sup de vinci - 1',
+    start: `${weekDates[3]}T16:00:00`, // Jeudi 16h-18h
+    end: `${weekDates[3]}T18:00:00`,
+    backgroundColor: '#ff6b6b',
+    borderColor: '#ff6b6b',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'Labo Cyber',
+      room: 'Sup de vinci - 1'
+    }
+  },
+  {
+    id: '10',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[4]}T08:00:00`, // Vendredi 8h-10h
+    end: `${weekDates[4]}T10:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  },
+  {
+    id: '11',
+    title: 'Sup de vinci - 204',
+    start: `${weekDates[4]}T14:00:00`, // Vendredi 14h-16h
+    end: `${weekDates[4]}T16:00:00`,
+    backgroundColor: '#ff7f7f',
+    borderColor: '#ff7f7f',
+    textColor: '#ffffff',
+    extendedProps: {
+      type: 'ESILV',
+      room: 'Sup de vinci - 204'
+    }
+  }
+];
+
+  // Notifications
+  const notifications = [
+    { id: 1, type: 'success', message: 'Sup de Vinci - 204 | 6 mai de 8h à 9h', detail: 'Votre réservation a été acceptée.' },
+    { id: 2, type: 'info', message: 'Sup de Vinci - 204 | 6 mai de 10h à 14h', detail: 'Vous avez été ajouté à un cours.' }
+  ];
+
+  // Fonctions de navigation
   const previousWeek = () => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.prev();
+    }
     setCurrentWeek(currentWeek - 1);
   };
 
   const nextWeek = () => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.next();
+    }
     setCurrentWeek(currentWeek + 1);
   };
 
-  // Fonction pour trouver les événements à une date et heure spécifiques
-  const getEventsForTimeSlot = (day, time) => {
-    return calendarData.events.filter(event => event.day === day && event.startTime === time);
+  const goToToday = () => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.today();
+    }
   };
 
-  // Fonction pour déterminer la classe CSS en fonction du type d'événement
-  const getEventClass = (type) => {
-    switch (type) {
-      case 'ESILV':
-        return 'event-esilv';
-      case 'EPITECH':
-        return 'event-epitech';
-      case 'IIM CDA':
-        return 'event-iim';
-      case 'Labo Cyber':
-        return 'event-cyber';
-      default:
-        return 'event-default';
+  const changeView = (viewName) => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.changeView(viewName);
     }
   };
 
   // Fonction pour aller vers une autre page
   const navigateTo = (path) => {
     navigate(path);
+  };
+
+  // Gestionnaires d'événements FullCalendar
+  const handleEventClick = (clickInfo) => {
+    const event = clickInfo.event;
+    alert(`Événement: ${event.title}\nType: ${event.extendedProps.type}\nSalle: ${event.extendedProps.room}`);
+  };
+
+  const handleDateSelect = (selectInfo) => {
+    console.log('Date sélectionnée:', selectInfo);
   };
 
   return (
@@ -142,7 +301,8 @@ const Dashboard = () => {
           <div className="notification-icon"></div>
         </header>
 
-               <section className="dashboard-calendar-section">
+        {/* Section calendrier avec FullCalendar */}
+        <section className="dashboard-calendar-section">
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>Semaine {currentWeek}</span>
@@ -150,74 +310,93 @@ const Dashboard = () => {
                 <button className="nav-button" onClick={previousWeek}>
                   &lt;
                 </button>
+                <button className="nav-button" onClick={goToToday}>
+                  Aujourd'hui
+                </button>
                 <button className="nav-button" onClick={nextWeek}>
                   &gt;
                 </button>
               </div>
             </div>
+            <div className="view-buttons">
+              <button className="nav-button" onClick={() => changeView('timeGridWeek')}>
+                Semaine
+              </button>
+              <button className="nav-button" onClick={() => changeView('dayGridMonth')}>
+                Mois
+              </button>
+              <button className="nav-button" onClick={() => changeView('timeGridDay')}>
+                Jour
+              </button>
+            </div>
           </div>
 
-          {/* Nouveau calendrier type "body" */}
-          <div className="dashboard-calendar-body">
-            <div className="dashboard-calendar-sidebar">
-              {[8, 10, 12, 14, 16, 18].map((hour, i) => (
-                <div key={hour} className="dashboard-calendar-hour-label" style={{
-                  height: 'calc(100% / 6)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  fontWeight: 'bold',
-                  fontSize: '15px',
-                  color: '#444',
-                  borderBottom: i < 5 ? '1px solid #e0e0e0' : 'none',
-                  paddingRight: 8,
-                  background: i % 2 === 0 ? '#f0f0f0' : '#e6e6e6'
-                }}>
-                  {hour}h
-                </div>
-              ))}
+          {/* FullCalendar */}
+          <div className="fullcalendar-container">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              headerToolbar={false} // Désactive l'en-tête par défaut pour utiliser le nôtre
+              events={events}
+              height="600px"
+              slotMinTime="08:00:00"
+              slotMaxTime="19:00:00"
+              slotDuration="01:00:00"
+              slotLabelInterval="02:00:00"
+              weekends={true}
+              editable={false}
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={true}
+              weekNumbers={false}
+              navLinks={false}
+              locale="fr"
+              firstDay={1} // Commencer par lundi
+              allDaySlot={false}
+              slotLabelFormat={{
+                hour: 'numeric',
+                minute: '2-digit',
+                omitZeroMinute: false,
+                meridiem: false
+              }}
+              eventTimeFormat={{
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: false
+              }}
+              eventClick={handleEventClick}
+              select={handleDateSelect}
+              businessHours={{
+                daysOfWeek: [1, 2, 3, 4, 5], // Lundi à vendredi
+                startTime: '08:00',
+                endTime: '19:00',
+              }}
+              eventDidMount={(info) => {
+                // Personnalisation avancée des événements si nécessaire
+                info.el.style.borderRadius = '4px';
+                info.el.style.fontSize = '12px';
+              }}
+            />
+          </div>
+
+          {/* Légende des couleurs */}
+          <div className="calendar-legend">
+            <div className="legend-item">
+              <div className="legend-color" style={{backgroundColor: '#ff7f7f'}}></div>
+              <span>ESILV</span>
             </div>
-            <div className="dashboard-calendar-columns">
-              {calendarData.days.map((day, dayIdx) => (
-                <div key={dayIdx} className="dashboard-calendar-day-column">
-                  <div className="dashboard-calendar-day-header">{day}</div>
-                  <div className="dashboard-calendar-day-body">
-                    {/* Affichage des rectangles pour chaque événement */}
-                    {calendarData.events
-                      .filter(ev => ev.day === day)
-                      .map((ev, idx) => {
-                        const getMinutes = (str) => {
-                          const [h, m] = str.split('h');
-                          return (parseInt(h) * 60 + parseInt(m || '0')) - (8 * 60);
-                        };
-                        const start = getMinutes(ev.startTime || '8h00');
-                        const end = getMinutes(ev.endTime || '10h00');
-                        const top = (start / 600) * 100;
-                        const height = ((end - start) / 600) * 100;
-                        let colorClass = 'event-default';
-                        if (ev.type === 'ESILV') colorClass = 'event-esilv';
-                        else if (ev.type === 'EPITECH') colorClass = 'event-epitech';
-                        else if (ev.type === 'IIM CDA') colorClass = 'event-iim';
-                        else if (ev.type === 'Labo Cyber') colorClass = 'event-cyber';
-                        return (
-                          <div
-                            key={idx}
-                            className={`dashboard-calendar-block ${colorClass}`}
-                            style={{
-                              top: `${top}%`,
-                              height: `${height}%`
-                            }}
-                          >
-                            <div className="dashboard-calendar-block-content">
-                              <div className="event-title">{ev.room}</div>
-                              <div className="event-type">{ev.type}</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              ))}
+            <div className="legend-item">
+              <div className="legend-color" style={{backgroundColor: '#90ee90'}}></div>
+              <span>EPITECH</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{backgroundColor: '#87cefa'}}></div>
+              <span>IIM CDA</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{backgroundColor: '#ff6b6b'}}></div>
+              <span>Labo Cyber</span>
             </div>
           </div>
         </section>
@@ -226,7 +405,7 @@ const Dashboard = () => {
         <section className="notifications-section">
           <h2 className="section-title">Dernières notifications</h2>
           <div className="notifications-list">
-            {calendarData.notifications.map(notification => (
+            {notifications.map(notification => (
               <div key={notification.id} className={`notification-item ${notification.type}`}>
                 <div className="notification-icon"></div>
                 <div className="notification-content">

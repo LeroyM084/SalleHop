@@ -59,9 +59,6 @@ const Profile = () => {
     <div className="dashboard-container">
       {/* Barre de navigation latérale */}
       <div className="sidebar">
-        <div className="logo">
-          <div className="logo-placeholder"></div>
-        </div>
         <nav className="nav-menu">
           <button className="nav-item" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>

@@ -116,7 +116,7 @@ button {
 
 /* En-tête de la page */
 .dashboard-header {
-  height: 50px;
+  height: 75px;
   background-color: #1a1a1a;
   color: white;
   display: flex;
@@ -126,7 +126,7 @@ button {
 }
 
 .user-info {
-  font-size: 14px;
+  font-size: 20px;
 }
 
 .notification-icon {

@@ -6,9 +6,12 @@ const RoomReservation = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState({ prenom: '', nom: '' });
   const [loading, setLoading] = useState(true);
-  const [selectedRoom, setSelectedRoom] = useState('204');
-  const [selectedInstructor, setSelectedInstructor] = useState('M.Joubert');
+
   const [selectedClass, setSelectedClass] = useState('B3DEV');
+  // Nouveaux états pour jour, heure début, heure fin
+  const [selectedDay, setSelectedDay] = useState('27/05');
+  const [selectedStartTime, setSelectedStartTime] = useState('8h00');
+  const [selectedEndTime, setSelectedEndTime] = useState('9h00');
 
   // Récupérer le nom et prénom de l'utilisateur au chargement du composant
   useEffect(() => {
@@ -40,14 +43,6 @@ const RoomReservation = () => {
     { id: '154', name: '154' },
   ];
 
-  // Données d'exemple pour les formateurs
-  const instructorOptions = [
-    { id: 'M.Joubert', name: 'M.Joubert' },
-    { id: 'Mme.Martin', name: 'Mme.Martin' },
-    { id: 'M.Dupont', name: 'M.Dupont' },
-    { id: 'M.Bernard', name: 'M.Bernard' },
-  ];
-
   // Données d'exemple pour les classes
   const classOptions = [
     { id: 'B3DEV', name: 'B3DEV' },
@@ -74,7 +69,7 @@ const RoomReservation = () => {
   const bookings = [
     { day: '27/05', start: '8h00', end: '13h30', title: 'Cours B3DEV' },
     { day: '27/05', start: '14h00', end: '16h00', title: 'Réunion' },
-    { day: '28/05', start: '9h00', end: '12h00', title: 'TD M1INFO' },
+    { day: '28/05', start: '9h00', end: '12h00', title: 'TD M1INFO' },  
     { day: '29/05', start: '10h00', end: '11h00', title: 'Soutien' },
     { day: '30/05', start: '8h00', end: '10h00', title: 'Cours B2DEV' },
     { day: '30/05', start: '14h00', end: '17h00', title: 'TP M2DATA' },
@@ -111,7 +106,9 @@ const calculateBookingPosition = (booking) => {
   // Fonction pour la réservation d'une salle
   const handleReservation = () => {
     // Cette fonction sera implémentée plus tard pour communiquer avec l'API
-    alert('Votre demande de réservation a été enregistrée.');
+    alert(
+        `Réservation enregistrée pour la classe ${selectedClass}, le ${selectedDay} de ${selectedStartTime} à ${selectedEndTime}.`
+    );
   };
 
   // Fonction pour naviguer vers une autre page
@@ -123,9 +120,6 @@ const calculateBookingPosition = (booking) => {
     <div className="dashboard-container">
       {/* Barre de navigation latérale */}
       <div className="sidebar">
-        <div className="logo">
-          <div className="logo-placeholder"></div>
-        </div>
         <nav className="nav-menu">
           <button className="nav-item" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
@@ -160,19 +154,7 @@ const calculateBookingPosition = (booking) => {
           
           <div className="reservation-form">
             <div className="form-row">
-              <div className="form-group">
-                <label>Pour quel formateur ?</label>
-                <select 
-                  value={selectedInstructor} 
-                  onChange={(e) => setSelectedInstructor(e.target.value)}
-                  className="form-select"
-                >
-                  {instructorOptions.map(instructor => (
-                    <option key={instructor.id} value={instructor.id}>{instructor.name}</option>
-                  ))}
-                </select>
-              </div>
-              
+              {/* Champ Classe */}
               <div className="form-group">
                 <label>Pour quelle Classe ?</label>
                 <select 
@@ -185,26 +167,47 @@ const calculateBookingPosition = (booking) => {
                   ))}
                 </select>
               </div>
-            </div>
-            
-            <div className="form-row">
+              {/* Champ Jour */}
               <div className="form-group">
-                <label>Numéro de salle</label>
-                <select 
-                  value={selectedRoom}
-                  onChange={(e) => setSelectedRoom(e.target.value)}
+                <label>Jour</label>
+                <select
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
                   className="form-select"
                 >
-                  {roomOptions.map(room => (
-                    <option key={room.id} value={room.id}>{room.name}</option>
+                  {weekdays.map((day, idx) => (
+                    <option key={idx} value={day}>{day}</option>
                   ))}
                 </select>
-                {selectedRoom === '204' && (
-                  <div className="room-warning">
-                    <span className="warning-icon">⚠️</span>
-                    La salle 204 est prisée par les formateurs
-                  </div>
-                )}
+              </div>
+            </div>
+            <div className="form-row">
+
+              {/* Champ Heure de début */}
+              <div className="form-group">
+                <label>Heure de début</label>
+                <select
+                  value={selectedStartTime}
+                  onChange={(e) => setSelectedStartTime(e.target.value)}
+                  className="form-select"
+                >
+                  {timeSlots.map((slot, idx) => (
+                    <option key={idx} value={slot}>{slot}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Champ Heure de fin */}
+              <div className="form-group">
+                <label>Heure de fin</label>
+                <select
+                  value={selectedEndTime}
+                  onChange={(e) => setSelectedEndTime(e.target.value)}
+                  className="form-select"
+                >
+                  {timeSlots.map((slot, idx) => (
+                    <option key={idx} value={slot}>{slot}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
