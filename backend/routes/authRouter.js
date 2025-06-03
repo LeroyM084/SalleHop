@@ -38,6 +38,9 @@ router.post('/signup',
         const hashedPassword = await bcrypt.hash(motdepasse, 10);
         const newUser = await addMembre(nom, prenom, email, campus.id, hashedPassword);
 
+        // Correction : création du token après création de l'utilisateur
+        const token = createToken(newUser.id, newUser.email);
+
         res.status(201).json({
             token,
             user: {
