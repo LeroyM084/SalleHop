@@ -59,13 +59,19 @@ const Profile = () => {
     <div className="dashboard-container">
       {/* Barre de navigation latérale */}
       <div className="sidebar">
+        <div className="logo">
+          <div className="logo-placeholder"></div>
+        </div>
         <nav className="nav-menu">
           <button className="nav-item" onClick={() => navigateTo('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-        <button className="nav-item" onClick={() => navigateTo('/reservation')}>
-        <img src={require('../image/icon.png')} alt="Réservation" className="nav-img-icon" />
-        </button>
+          <button className="nav-item" onClick={() => navigateTo('/school')}>
+            <div className="nav-icon school-icon"></div>
+          </button>
+          <button className="nav-item" onClick={() => navigateTo('/campus')}>
+            <div className="nav-icon campus-icon"></div>
+          </button>
           <button className="nav-item active" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>
           </button>
