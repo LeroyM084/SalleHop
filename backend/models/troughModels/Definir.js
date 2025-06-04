@@ -41,6 +41,16 @@ module.exports = (sequelize) => {
       },
       onDelete: 'SET NULL',
       onUpdate: 'CASCADE'
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'utilisateur',
+        key: 'identifiant'
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
     }
   }, {
     tableName: 'Definir',
@@ -53,6 +63,7 @@ module.exports = (sequelize) => {
     Definir.belongsTo(models.groupe, { foreignKey: 'groupe_id' });
     Definir.belongsTo(models.cours, { foreignKey: 'cours_id' });
     Definir.belongsTo(models.creneau, { foreignKey: 'creneau_id' });
+    Definir.belongsTo(models.utilisateur, { foreignKey: 'user_id' });
   };
 
   return Definir;
