@@ -687,3 +687,145 @@
 .recurrence-popup .popup-footer .cancel-button {
   margin-right: auto;
 }
+
+/* Campus Overview Section */
+.campus-overview-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px; /* Augmenter l'espace entre les sections */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.campus-overview-section .section-title {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.campus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding-bottom: 20px; /* Ajouter un peu d'espace en bas */
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+}
+
+/* Mise à jour des styles pour les salles */
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.room-item:hover {
+  background: #e9ecef;
+}
+
+.room-name {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.reserve-button {
+  padding: 6px 12px;
+  background-color: #4ECDC4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reserve-button:hover {
+  background-color: #45b7af;
+  transform: translateY(-1px);
+}
+
+/* Mise à jour du style des cartes de campus */
+.campus-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.campus-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* Mise à jour complète de la section calendrier */
+.dashboard-calendar-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dashboard-calendar-header {
+  background: #f8f9fa;
+  padding: 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.fullcalendar-container {
+  padding: 24px;
+  background: white;
+}
+
+/* Amélioration du style des boutons de navigation */
+.nav-button {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  padding: 0 16px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #f8f9fa;
+  border-color: #cbd3da;
+  color: #212529;
+}
+
+.nav-button:active {
+  background-color: #e9ecef;
+}
+
+/* Style de la semaine courante */
+.week-selector {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.week-selector span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 300px;
+}
+
+/* Style pour les boutons de vue */
+.nav-button.active {
+  background-color: #4ECDC4;
+  color: white;
+  border-color: #4ECDC4;
+}
+
+.nav-button.active:hover {
+  background-color: #45b7af;
+  color: white;
+}
