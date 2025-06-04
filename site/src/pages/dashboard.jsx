@@ -5,6 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './dashboard.css';
+import CampusOverview from './CampusOverview';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -166,39 +167,67 @@ const Dashboard = () => {
     { id: 2, type: 'info', message: 'Sup de Vinci - 204 | 6 mai de 10h à 14h', detail: 'Vous avez été ajouté à un cours.' }
   ];
 
-  // Fonctions de navigation
+  // Ajoutez ces états
+  const [currentView, setCurrentView] = useState('timeGridWeek');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Modifiez la fonction changeView
+  const changeView = (viewName) => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.changeView(viewName);
+      setCurrentView(viewName);
+      setCurrentDate(calendarApi.getDate());
+    }
+  };
+
+  // Ajoutez ces fonctions
+  const formatDateHeader = () => {
+    const date = currentDate;
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    
+    switch (currentView) {
+      case 'timeGridDay':
+        return date.toLocaleDateString('fr-FR', options);
+      
+      case 'timeGridWeek':
+        const start = new Date(date);
+        start.setDate(date.getDate() - date.getDay() + 1);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        return `Semaine du ${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+      
+      case 'dayGridMonth':
+        return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      
+      default:
+        return '';
+    }
+  };
+
+  // Modifiez les fonctions de navigation
   const previousWeek = () => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.prev();
+      setCurrentDate(calendarApi.getDate());
     }
-    setCurrentWeek(currentWeek - 1);
   };
 
   const nextWeek = () => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.next();
+      setCurrentDate(calendarApi.getDate());
     }
-    setCurrentWeek(currentWeek + 1);
   };
 
   const goToToday = () => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.today();
+      setCurrentDate(calendarApi.getDate());
     }
-  };
-
-  const changeView = (viewName) => {
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.changeView(viewName);
-    }
-  };
-
-  const navigateTo = (path) => {
-    navigate(path);
   };
 
   // Gestionnaires d'événements FullCalendar
@@ -506,6 +535,22 @@ const Dashboard = () => {
     closeEventPopup();
   };
 
+  const handleReserveRoom = ({ salle, campus }) => {
+    const salleId = salles.find(s => s.nom.toLowerCase().includes(salle.toLowerCase()))?.id;
+    
+    if (salleId) {
+      const now = new Date();
+      setEventForm(prev => ({
+        ...prev,
+        salle: salleId.toString(),
+        date: now.toISOString().split('T')[0],
+        starting_hours: '08:00',
+        finishing_hours: '09:00'
+      }));
+      setShowEventPopup(true);
+    }
+  };
+
   return (
     <div className="dashboard-container">
       {/* Barre de navigation latérale */}
@@ -514,21 +559,21 @@ const Dashboard = () => {
           <div className="logo-placeholder"></div>
         </div>
         <nav className="nav-menu">
-          <button className="nav-item active" onClick={() => navigateTo('/dashboard')}>
+          <button className="nav-item active" onClick={() => navigate('/dashboard')}>
             <div className="nav-icon home-icon"></div>
           </button>
-          <button className="nav-item" onClick={() => navigateTo('/school')}>
+          <button className="nav-item" onClick={() => navigate('/school')}>
             <div className="nav-icon school-icon"></div>
           </button>
-          <button className="nav-item" onClick={() => navigateTo('/campus')}>
+          <button className="nav-item" onClick={() => navigate('/campus')}>
             <div className="nav-icon campus-icon"></div>
           </button>
-          <button className="nav-item" onClick={() => navigateTo('/profile')}>
+          <button className="nav-item" onClick={() => navigate('/profile')}>
             <div className="nav-icon profile-icon"></div>
           </button>
         </nav>
         <div className="sidebar-footer">
-          <button className="nav-item" onClick={() => navigateTo('/settings')}>
+          <button className="nav-item" onClick={() => navigate('/settings')}>
             <div className="nav-icon settings-icon"></div>
           </button>
         </div>
@@ -544,11 +589,14 @@ const Dashboard = () => {
           <div className="notification-icon"></div>
         </header>
 
+        {/* CampusOverview component */}
+        <CampusOverview onReserveRoom={handleReserveRoom} />
+
         {/* Section calendrier avec FullCalendar */}
         <section className="dashboard-calendar-section">
           <div className="dashboard-calendar-header">
             <div className="week-selector">
-              <span>Semaine {currentWeek}</span>
+              <span>{formatDateHeader()}</span>
               <div className="navigation-buttons">
                 <button className="nav-button" onClick={previousWeek}>
                   &lt;
@@ -562,13 +610,22 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="view-buttons">
-              <button className="nav-button" onClick={() => changeView('timeGridWeek')}>
+              <button 
+                className={`nav-button ${currentView === 'timeGridWeek' ? 'active' : ''}`} 
+                onClick={() => changeView('timeGridWeek')}
+              >
                 Semaine
               </button>
-              <button className="nav-button" onClick={() => changeView('dayGridMonth')}>
+              <button 
+                className={`nav-button ${currentView === 'dayGridMonth' ? 'active' : ''}`} 
+                onClick={() => changeView('dayGridMonth')}
+              >
                 Mois
               </button>
-              <button className="nav-button" onClick={() => changeView('timeGridDay')}>
+              <button 
+                className={`nav-button ${currentView === 'timeGridDay' ? 'active' : ''}`} 
+                onClick={() => changeView('timeGridDay')}
+              >
                 Jour
               </button>
             </div>
