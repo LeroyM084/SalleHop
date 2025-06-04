@@ -23,12 +23,10 @@ const loginController = async (req) => {
 
     // On retourne l'utilisateur trouvé
     return {
-        id: existingUser.id,
-        first_name: existingUser.first_name,
-        last_name: existingUser.last_name,
-        email: existingUser.email,
-        createdAt: existingUser.createdAt,
-        updatedAt: existingUser.updatedAt
+        id: existingUser.identifiant,
+        first_name: existingUser.prenom,
+        last_name: existingUser.nom,
+        email: existingUser.email
     };
 }
 

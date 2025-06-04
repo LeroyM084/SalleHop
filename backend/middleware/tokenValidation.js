@@ -17,6 +17,7 @@ async function verificationToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_KEY);
     req.userId = decoded.id;
+    console.log("Middleware executé ! Id trouvé : ", req.userId); // -- DEBUG
     next();
   } catch (err) {
     return res.status(403).json({ error: 'Token invalide ou expiré' });

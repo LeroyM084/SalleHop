@@ -3,97 +3,144 @@
 // Toutes les données de tests peuvent être supprimées via le script ./deleteData.js
 
 const bcrypt = require('bcrypt');
-const { sequelize, utilisateur, ecole, groupe, campus, salle, cours, creneau, role } = require('../models');
-
-// Ajoute aussi les modèles de jointure si besoin
-const { Definir, Appartenir, Avoir, Enseigner, Correspondre } = require('../models');
+const {
+  sequelize,
+  utilisateur,
+  ecole,
+  groupe,
+  campus,
+  salle,
+  cours,
+  creneau,
+  role
+} = require('../models');
+const {
+  Definir,
+  Appartenir,
+  Avoir,
+  Enseigner,
+  Correspondre,
+  Etre,
+  EtreRattache,
+  Contenir
+} = require('../models');
 
 async function addTestData() {
   try {
     await sequelize.authenticate();
     console.log('Connexion à la base OK.');
 
-    // Ajout Campus
+    // Campus
     const campusTest = await campus.create({
-      nom: 'CAMPUS_TEST_SPECIAL',
-      adresse: '1 rue du Test, 75000 Paris'
+      nom: 'CAMPUS_TEST',
+      adresse: '123 rue Test, 75000 Paris'
     });
 
-    // Ajout Ecole
+    // Ecole
     const ecoleTest = await ecole.create({
-      nom: 'ECOLE_TEST_SPECIAL'
+      nom: 'ECOLE_TEST'
     });
 
-    // Ajout Groupe
+    // Lier Ecole et Campus
+    await EtreRattache.create({
+      campus_id: campusTest.identifiant,
+      ecole_id: ecoleTest.identifiant
+    });
+
+    // Groupe
     const groupeTest = await groupe.create({
-      nom: 'GROUPE_TEST_SPECIAL',
+      nom: 'GROUPE_TEST',
       est_etudiant: true,
       ecole_id: ecoleTest.identifiant
     });
 
-    // Ajout Salle
+    // Salle
     const salleTest = await salle.create({
-      nom: 'SALLE_TEST_SPECIAL',
+      nom: 'SALLE_TEST',
       campus_id: campusTest.identifiant
     });
 
-    // Ajout Utilisateur
+    // Lier Salle et Campus (Contenir)
+    await Contenir.create({
+      campus_id: campusTest.identifiant,
+      salle_id: salleTest.identifiant
+    });
+
+    // Utilisateur
     const userTest = await utilisateur.create({
-      nom: 'UTILISATEUR_TEST',
-      prenom: 'SPECIAL',
-      email: 'special_test@example.com',
+      nom: 'DUPONT',
+      prenom: 'Jean',
+      email: 'jean.dupont@test.com',
       mot_de_passe: await bcrypt.hash('password123', 10)
     });
 
-    // Ajout Role
+    // Role
     const roleTest = await role.create({
-      nom_role: 'ROLE_TEST_SPECIAL'
+      nom_role: 'ADMIN'
     });
 
-    // Ajout Cours
+    // Lier Utilisateur et Role (Etre)
+    await Etre.create({
+      utilisateur_id: userTest.identifiant,
+      role_id: roleTest.identifiant
+    });
+
+    // Cours
     const coursTest = await cours.create({
-      nom: 'COURS_TEST_SPECIAL',
-      nombre_heures_total: 42
+      nom: 'COURS_TEST',
+      nombre_heures_total: 20
     });
 
-    // Ajout Creneau
-    const creneauTest = await creneau.create({
-      date: new Date('2025-06-01'),
-      heure_debut: '10:00:00',
-      heure_fin: '12:00:00'
+    // Lier Groupe et Cours (Correspondre)
+    await Correspondre.create({
+      groupe_id: groupeTest.identifiant,
+      cours_id: coursTest.identifiant
     });
 
-    // Table de jointure : Definir (creneau, salle, cours, groupe)
-    await Definir.create({
-      creneau_id: creneauTest.identifiant,
-      salle_id: salleTest.identifiant,
-      cours_id: coursTest.identifiant,
-      groupe_id: groupeTest.identifiant
-    });
-
-    // Table de jointure : Appartenir (utilisateur, groupe, ecole)
+    // Lier Utilisateur et Groupe (Appartenir)
     await Appartenir.create({
       utilisateur_id: userTest.identifiant,
       groupe_id: groupeTest.identifiant,
       ecole_id: ecoleTest.identifiant
     });
 
-    // Table de jointure : Avoir (utilisateur, role)
-    await Avoir.create({
-      utilisateur_id: userTest.identifiant,
-      role_id: roleTest.identifiant
-    });
-
-    // Table de jointure : Enseigner (utilisateur, cours)
+    // Lier Utilisateur et Cours (Enseigner)
     await Enseigner.create({
       utilisateur_id: userTest.identifiant,
       cours_id: coursTest.identifiant
     });
 
-    // Table de jointure : Correspondre (groupe, cours)
-    await Correspondre.create({
+    // Creneau 1
+    const creneauTest1 = await creneau.create({
+      date: new Date('2025-06-01'),
+      heure_debut: '10:00:00',
+      heure_fin: '12:00:00',
+      status: 'en attente'
+    });
+
+    // Creneau 2 (pour tester plusieurs réservations)
+    const creneauTest2 = await creneau.create({
+      date: new Date('2025-06-02'),
+      heure_debut: '14:00:00',
+      heure_fin: '16:00:00',
+      status: 'en attente'
+    });
+
+    // Lier tout dans Definir (creneau, salle, cours, groupe)
+    await Definir.create({
+      creneau_id: creneauTest1.identifiant,
+      salle_id: salleTest.identifiant,
+      cours_id: coursTest.identifiant,
       groupe_id: groupeTest.identifiant,
-      cours_id: coursTest.identifiant
+      user_id: userTest.identifiant
+    });
+
+    await Definir.create({
+      creneau_id: creneauTest2.identifiant,
+      salle_id: salleTest.identifiant,
+      cours_id: coursTest.identifiant,
+      groupe_id: groupeTest.identifiant,
+      user_id: userTest.identifiant
     });
 
     console.log('✅ Données de test ajoutées et reliées avec succès !');
