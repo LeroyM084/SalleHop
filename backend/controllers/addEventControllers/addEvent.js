@@ -11,7 +11,7 @@ const addEvent = async(eventData, userId) => {
 
         // Vérifier si la salle existe
         const room = await salle.findOne({
-            where: { identifiant: eventData.roomNumber }
+            where: { nom: eventData.roomNumber } // Utiliser le nom au lieu de l'identifiant
         });
         if (!room) {
             throw new Error('Salle non trouvée.');
@@ -19,7 +19,7 @@ const addEvent = async(eventData, userId) => {
 
         // Vérifier si le groupe existe
         const group = await groupe.findOne({
-            where: { nom: eventData.groupName }
+            where: { nom: eventData.groupName } // Utiliser le nom au lieu de l'identifiant
         });
         if (!group) {
             throw new Error('Groupe non trouvé.');
@@ -27,7 +27,7 @@ const addEvent = async(eventData, userId) => {
 
         // Vérifier si le cours existe
         const course = await cours.findOne({
-            where: { nom: eventData.coursLabel }
+            where: { nom: eventData.coursLabel } // Utiliser le nom au lieu de l'identifiant
         });
         if (!course) {
             throw new Error('Cours non trouvé.');
@@ -40,8 +40,8 @@ const addEvent = async(eventData, userId) => {
             heure_fin: eventData.timeSlot.endTime,
             status: 'en attente'
         });
-        
-        // On relie ensuite tout ça dans la table définir.  // -- DEBUG
+
+        // On relie ensuite tout ça dans la table définir
         await Definir.create({
             utilisateur_id: userId,
             salle_id: room.identifiant,
@@ -49,9 +49,14 @@ const addEvent = async(eventData, userId) => {
             creneau_id: newCreneau.identifiant,
             cours_id: course.identifiant
         });
-} catch (error) 
-{
+
+        return { message: 'Evènement créé avec succès.', data: newCreneau };
+    } catch (error) {
         console.error('Erreur lors de l\'ajout de l\'évènement:', error);
         throw error;
-    }};
-    
+    }
+};
+
+module.exports = {
+    addEvent
+};

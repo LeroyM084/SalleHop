@@ -7,6 +7,7 @@ import { useCalendar } from '../hooks/useCalendar';
 import { groupes, salles, notifications } from '../data/mockData';
 import './dashboard.css';
 import CampusOverview from './CampusOverview';
+import { createEvent } from '../services/eventService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -231,84 +232,69 @@ const Dashboard = () => {
   };
 
   // Créer un nouvel événement
-  const createEvent = () => {
+  const handleCreateEvent = async () => {
     if (!eventForm.groupe || !eventForm.cours || !eventForm.salle) {
-      alert('Veuillez remplir tous les champs obligatoires');
-      return;
+        alert('Veuillez remplir tous les champs obligatoires');
+        return;
     }
 
-    // Récupérer les infos sélectionnées
-    const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
-    const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
-    const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
+    try {
+        const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
+        const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
+        const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
 
-    if (!selectedGroupe || !selectedCours || !selectedSalle) {
-      alert('Erreur: Impossible de trouver les informations sélectionnées');
-      return;
+        if (!selectedCours || !selectedGroupe || !selectedSalle) {
+            throw new Error('Données de sélection invalides');
+        }
+
+        const eventData = {
+            coursLabel: selectedCours.nom, // Convertir ID en nom
+            roomNumber: selectedSalle.nom, // Convertir ID en nom
+            groupName: selectedGroupe.nom, // Convertir ID en nom
+            timeSlot: {
+                date: eventForm.date,
+                startTime: eventForm.starting_hours,
+                endTime: eventForm.finishing_hours
+            },
+            recurrence: {
+                status: recurrenceForm.endType !== 'never',
+                daygap: recurrenceForm.frequency === 'semaine' ? 7 : 30,
+                iteration: recurrenceForm.endType === 'occurrences' ? recurrenceForm.occurrences : null,
+                day: Object.keys(recurrenceForm.repeatOn).filter(day => recurrenceForm.repeatOn[day])
+            }
+        };
+
+        const response = await createEvent(eventData);
+        console.log('Réponse du serveur:', response);
+
+        if (response.message === 'Evènement créé avec succès.') {
+            const newEvents = generateEventsFromResponse(response.data);
+            setEvents(prev => [...prev, ...newEvents]);
+            closeEventPopup();
+        }
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        alert(`Erreur lors de la création de l'événement: ${error.message}`);
     }
+};
 
-    let newEvents = [];
-
-    if (activeRecurrence) {
-      // Générer toutes les occurrences selon la récurrence
-      const occurrences = generateRecurrenceDates();
-      
-      // Créer un événement pour chaque occurrence
-      newEvents = occurrences.map((occ, idx) => ({
-        id: `${Date.now()}_${idx}`,
-        title: `${selectedCours.nom} - ${selectedGroupe.nom}`,
-        start: `${occ.date}T${occ.startTime}:00`,
-        end: `${occ.date}T${occ.endTime}:00`,
+const generateEventsFromResponse = (eventData) => {
+    // Transformer les données de l'API en format d'événement pour le calendrier
+    return Array.isArray(eventData) ? eventData.map(event => ({
+        id: event.id,
+        title: `${event.cours} - ${event.groupe}`,
+        start: `${event.date}T${event.startTime}`,
+        end: `${event.date}T${event.endTime}`,
         backgroundColor: '#4CAF50',
         borderColor: '#4CAF50',
         textColor: '#ffffff',
         extendedProps: {
-          groupe: selectedGroupe.nom,
-          cours: selectedCours.nom,
-          salle: selectedSalle.nom
+            groupe: event.groupe,
+            cours: event.cours,
+            salle: event.salle
         }
-      }));
-    } else {
-      // Créer un événement unique
-      newEvents = [{
-        id: Date.now().toString(),
-        title: `${selectedCours.nom} - ${selectedGroupe.nom}`,
-        start: `${eventForm.date}T${eventForm.starting_hours}:00`,
-        end: `${eventForm.date}T${eventForm.finishing_hours}:00`,
-        backgroundColor: '#4CAF50',
-        borderColor: '#4CAF50',
-        textColor: '#ffffff',
-        extendedProps: {
-          groupe: selectedGroupe.nom,
-          cours: selectedCours.nom,
-          salle: selectedSalle.nom
-        }
-      }];
-    }
-
-    // Ajouter les événements au calendrier
-    setEvents(prev => [...prev, ...newEvents]);
-
-    // Réinitialiser la récurrence et fermer les popups
-    setActiveRecurrence(null);
-    setRecurrenceForm({
-      frequency: 'semaine',
-      repeatEvery: 1,
-      repeatOn: {
-        monday: false,
-        tuesday: false,
-        wednesday: false,
-        thursday: false,
-        friday: false,
-        saturday: false,
-        sunday: false
-      },
-      endType: 'never',
-      endDate: '',
-      occurrences: 1
-    });
-    closeEventPopup();
-  };
+    })) : [];
+};
 
   // Fermer la popup
   const closeEventPopup = () => {
@@ -445,37 +431,6 @@ const Dashboard = () => {
 
     return dates;
   };
-
-  // Créer événement récurrent
-  // const createRecurrentEvent = () => {
-  //   // Générer toutes les occurrences
-  //   const occurrences = generateRecurrenceDates();
-
-  //   // Récupérer les infos sélectionnées
-  //   const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
-  //   const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
-  //   const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
-
-  //   // Créer les événements
-  //   const newEvents = occurrences.map((occ, idx) => ({
-  //     id: `${Date.now()}_${idx}`,
-  //     title: `${selectedCours?.nom} - ${selectedGroupe?.nom}`,
-  //     start: `${occ.date}T${occ.startTime}:00`,
-  //     end: `${occ.date}T${occ.endTime}:00`,
-  //     backgroundColor: '#4CAF50',
-  //     borderColor: '#4CAF50',
-  //     textColor: '#ffffff',
-  //     extendedProps: {
-  //       groupe: selectedGroupe?.nom,
-  //       cours: selectedCours?.nom,
-  //       salle: selectedSalle?.nom
-  //     }
-  //   }));
-
-  //   setEvents(prev => [...prev, ...newEvents]);
-  //   closeRecurrencePopup();
-  //   closeEventPopup();
-  // };
 
   const { previous, next, today } = navigationActions(calendarRef);
 
@@ -644,7 +599,7 @@ const Dashboard = () => {
                 <button className="cancel-button" onClick={closeEventPopup}>
                   Annuler
                 </button>
-                <button className="create-button" onClick={createEvent}>
+                <button className="create-button" onClick={handleCreateEvent}>
                   Créer le créneau
                 </button>
               </div>

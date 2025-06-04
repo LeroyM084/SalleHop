@@ -39,7 +39,7 @@ const LoginPage = () => {
         },
         body: JSON.stringify({
           email: credentials.email,
-          motdepasse: credentials.password
+          password: credentials.password
         })
       });
       
