@@ -60,6 +60,9 @@ router.post('/login',
             token: createToken(result.id, result.email) // On lui envoie un token JWT.
         };
 
+        console.log(result.id) // -- DEBUG
+        console.log(userData)
+
         return res.status(200).json({
             message: 'Connexion réussie',
             data: userData

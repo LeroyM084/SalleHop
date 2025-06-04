@@ -6,12 +6,13 @@ const addEvent = async(eventData, userId) => {
         // Vérifier si l'utilisateur existe
         const user = await utilisateur.findByPk(userId);
         if (!user) {
+            console.log('UTILISATEUR ID RECUES : ', userId);
             throw new Error('Utilisateur non trouvé.');
         }
 
         // Vérifier si la salle existe
         const room = await salle.findOne({
-            where: { nom: eventData.roomNumber } // Utiliser le nom au lieu de l'identifiant
+            where: { nom : eventData.roomNumber }
         });
         if (!room) {
             throw new Error('Salle non trouvée.');
@@ -40,9 +41,9 @@ const addEvent = async(eventData, userId) => {
             heure_fin: eventData.timeSlot.endTime,
             status: 'en attente'
         });
-
-        // On relie ensuite tout ça dans la table définir
-        await Definir.create({
+        
+        // On relie ensuite tout ça dans la table définir.  // -- DEBUG
+        const newEvent = await Definir.create({
             utilisateur_id: userId,
             salle_id: room.identifiant,
             groupe_id: group.identifiant,
@@ -50,13 +51,16 @@ const addEvent = async(eventData, userId) => {
             cours_id: course.identifiant
         });
 
-        return { message: 'Evènement créé avec succès.', data: newCreneau };
-    } catch (error) {
+        return result = {
+            status : 'ok',
+            message: 'Evènement ajouté avec succès.',
+            newEvent
+        }
+} catch (error) 
+{
         console.error('Erreur lors de l\'ajout de l\'évènement:', error);
         throw error;
-    }
-};
+    }};
 
-module.exports = {
-    addEvent
-};
+module.exports = addEvent;
+    

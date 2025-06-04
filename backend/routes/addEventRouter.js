@@ -15,16 +15,24 @@ router.post('/newEvent',
     // dataTypeValidation(addEventSchema),
     async(req,res) => {
         try {
-            const userId = req.userId;
+            console.log('Requête reçue pour la création d\'un évènement:', req.body); // -- DEBUG
+            const userId = req.userId; // -- DEBUG | undefined
             const eventData = req.body;
 
             if (!eventData || !eventData.coursLabel || !eventData.roomNumber || !eventData.timeSlot || !eventData.groupName || !eventData.recurrence) {
                 return res.status(400).json({ message: 'Données manquantes pour la création de l\'évènement.' });
+        }
+            if(eventData.recurrence.status === false){
+                console.log('USERID envoyé : ', userId); // -- DEBUG
+                result = await addEvent(eventData, userId)
+            } else if(eventData.recurrence.status === true) {
+                result = await addEventReccurency(eventData, userId)
+            } else {
+                return res.status(400).json({ message: 'Statut de récurrence invalide.' });
             }
 
-            const result = await addEvent(eventData, userId);
             if (!result) {
-                return res.status(500).json({ message: 'Erreur lors de la création de l\'évènement.' });
+                return res.status(500).json({ message: 'Erreur lors de la création de l\'évènement.', error : error.message });
             }
 
             return res.status(201).json({ message: 'Evènement créé avec succès.', data: result });
