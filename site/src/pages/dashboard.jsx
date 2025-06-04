@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import Sidebar from '../components/layout/Sidebar';
+import Calendar from '../components/calendar/Calendar';
+import NotificationsList from '../components/notifications/NotificationsList';
+import { useCalendar } from '../hooks/useCalendar';
+import { groupes, salles, notifications } from '../data/mockData';
 import './dashboard.css';
 import CampusOverview from './CampusOverview';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [currentWeek, setCurrentWeek] = useState(31);
-  const [userName, setUserName] = useState({ prenom: '', nom: '' });
-  const [loading, setLoading] = useState(true);
   const calendarRef = useRef(null);
-
+  const [cours, setCours] = useState([]);
+  const { currentView, currentDate, setCurrentDate, changeView, navigationActions } = useCalendar();  // Add setCurrentDate here
+  
   // États pour la popup d'ajout d'événement
-  const [showEventPopup, setShowEventPopup] = useState(false);
-  const [showRecurrencePopup, setShowRecurrencePopup] = useState(false);
-  const [selectedDates, setSelectedDates] = useState(null);
-  const [eventForm, setEventForm] = useState({
+  const [showEventPopup, setShowEventPopup] = React.useState(false);
+  const [showRecurrencePopup, setShowRecurrencePopup] = React.useState(false);
+  const [selectedDates, setSelectedDates] = React.useState(null);
+  const [eventForm, setEventForm] = React.useState({
     groupe: '',
     cours: '',
     salle: '',
@@ -29,7 +29,7 @@ const Dashboard = () => {
   });
 
   // État pour la récurrence
-  const [recurrenceForm, setRecurrenceForm] = useState({
+  const [recurrenceForm, setRecurrenceForm] = React.useState({
     frequency: 'semaine', // semaine, mois
     repeatEvery: 1,
     repeatOn: {
@@ -46,24 +46,8 @@ const Dashboard = () => {
     occurrences: 1
   });
 
-  // Données pour les dropdowns (à remplacer par des appels API)
-  const [groupes, setGroupes] = useState([
-    { id: 1, nom: 'A1 ESILV' },
-    { id: 2, nom: 'A2 ESILV' },
-    { id: 3, nom: 'A3 ESILV' },
-    { id: 4, nom: 'B1 EPITECH' },
-    { id: 5, nom: 'B2 EPITECH' },
-    { id: 6, nom: 'M1 IIM CDA' },
-    { id: 7, nom: 'M2 IIM CDA' }
-  ]);
-
-  const [cours, setCours] = useState([]);
-  const [salles, setSalles] = useState([
-    { id: 1, nom: 'Sup de vinci - 204' },
-    { id: 2, nom: 'Informatique - 154' },
-    { id: 3, nom: 'Outlook - 3' },
-    { id: 4, nom: 'Sup de vinci - 1' }
-  ]);
+  // Ajouter un état pour stocker la configuration de récurrence active
+  const [activeRecurrence, setActiveRecurrence] = useState(null);
 
   // Cours par groupe (simulation de données relationnelles)
   const coursByGroupe = {
@@ -75,38 +59,6 @@ const Dashboard = () => {
     6: [{ id: 12, nom: 'UX/UI Design' }, { id: 13, nom: 'Développement Web' }],
     7: [{ id: 14, nom: 'Gestion de projet' }, { id: 15, nom: 'Architecture logicielle' }]
   };
-
-  // Récupérer le nom et prénom de l'utilisateur au chargement du composant
-  useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const res = await fetch('http://10.111.60.225:8200/api/profile/name', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-          }
-        });
-
-        if (!res.ok) {
-          throw new Error('Erreur lors de la récupération des données utilisateur');
-        }
-
-        const data = await res.json();
-        setUserName({ 
-          prenom: data.prenom || '', 
-          nom: data.nom || '' 
-        });
-      } catch (error) {
-        console.error('Erreur:', error);
-        setUserName({ prenom: 'Utilisateur', nom: '' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserName();
-  }, []);
 
   // Fonction pour obtenir les dates de la semaine actuelle
   const getCurrentWeekDates = () => {
@@ -130,7 +82,7 @@ const Dashboard = () => {
   const weekDates = getCurrentWeekDates();
 
   // État pour les événements (maintenant modifiable)
-  const [events, setEvents] = useState([
+  const [events, setEvents] = React.useState([
     {
       id: '1',
       title: 'Mathématiques - A1 ESILV',
@@ -161,24 +113,13 @@ const Dashboard = () => {
     }
   ]);
 
-  // Notifications
-  const notifications = [
-    { id: 1, type: 'success', message: 'Sup de Vinci - 204 | 6 mai de 8h à 9h', detail: 'Votre réservation a été acceptée.' },
-    { id: 2, type: 'info', message: 'Sup de Vinci - 204 | 6 mai de 10h à 14h', detail: 'Vous avez été ajouté à un cours.' }
-  ];
-
   // Ajoutez ces états
-  const [currentView, setCurrentView] = useState('timeGridWeek');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // const [currentView, setCurrentView] = React.useState('timeGridWeek');
+  // const [currentDate, setCurrentDate] = React.useState(new Date());
 
   // Modifiez la fonction changeView
-  const changeView = (viewName) => {
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.changeView(viewName);
-      setCurrentView(viewName);
-      setCurrentDate(calendarApi.getDate());
-    }
+  const changeViewHandler = (viewName) => {
+    changeView(calendarRef, viewName);
   };
 
   // Ajoutez ces fonctions
@@ -260,13 +201,12 @@ const Dashboard = () => {
       [field]: value
     }));
 
-    // Si le groupe change, mettre à jour les cours disponibles
     if (field === 'groupe') {
       const groupeId = parseInt(value);
       setCours(coursByGroupe[groupeId] || []);
       setEventForm(prev => ({
         ...prev,
-        cours: '' // Reset cours selection
+        cours: ''
       }));
     }
   };
@@ -297,40 +237,76 @@ const Dashboard = () => {
       return;
     }
 
-    // Ici vous ajouterez l'appel API pour créer l'événement en base
-    const eventData = {
-      date_: eventForm.date,
-      starting_hours: eventForm.starting_hours,
-      finishing_hours: eventForm.finishing_hours,
-      Identifiant_1: parseInt(eventForm.salle), // ID de la salle
-      Identifiant_2: parseInt(eventForm.groupe), // ID du groupe
-      Identifiant_3: 1, // ID de l'utilisateur (à récupérer du token)
-      Identifiant_4: parseInt(eventForm.cours) // ID du cours
-    };
-
-    console.log('Données à envoyer à la DB:', eventData);
-
-    // Créer l'événement pour l'affichage (temporaire)
+    // Récupérer les infos sélectionnées
     const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
     const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
     const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
 
-    const newEvent = {
-      id: Date.now().toString(),
-      title: `${selectedCours?.nom} - ${selectedGroupe?.nom}`,
-      start: `${eventForm.date}T${eventForm.starting_hours}:00`,
-      end: `${eventForm.date}T${eventForm.finishing_hours}:00`,
-      backgroundColor: '#4CAF50',
-      borderColor: '#4CAF50',
-      textColor: '#ffffff',
-      extendedProps: {
-        groupe: selectedGroupe?.nom,
-        cours: selectedCours?.nom,
-        salle: selectedSalle?.nom
-      }
-    };
+    if (!selectedGroupe || !selectedCours || !selectedSalle) {
+      alert('Erreur: Impossible de trouver les informations sélectionnées');
+      return;
+    }
 
-    setEvents(prev => [...prev, newEvent]);
+    let newEvents = [];
+
+    if (activeRecurrence) {
+      // Générer toutes les occurrences selon la récurrence
+      const occurrences = generateRecurrenceDates();
+      
+      // Créer un événement pour chaque occurrence
+      newEvents = occurrences.map((occ, idx) => ({
+        id: `${Date.now()}_${idx}`,
+        title: `${selectedCours.nom} - ${selectedGroupe.nom}`,
+        start: `${occ.date}T${occ.startTime}:00`,
+        end: `${occ.date}T${occ.endTime}:00`,
+        backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
+        textColor: '#ffffff',
+        extendedProps: {
+          groupe: selectedGroupe.nom,
+          cours: selectedCours.nom,
+          salle: selectedSalle.nom
+        }
+      }));
+    } else {
+      // Créer un événement unique
+      newEvents = [{
+        id: Date.now().toString(),
+        title: `${selectedCours.nom} - ${selectedGroupe.nom}`,
+        start: `${eventForm.date}T${eventForm.starting_hours}:00`,
+        end: `${eventForm.date}T${eventForm.finishing_hours}:00`,
+        backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
+        textColor: '#ffffff',
+        extendedProps: {
+          groupe: selectedGroupe.nom,
+          cours: selectedCours.nom,
+          salle: selectedSalle.nom
+        }
+      }];
+    }
+
+    // Ajouter les événements au calendrier
+    setEvents(prev => [...prev, ...newEvents]);
+
+    // Réinitialiser la récurrence et fermer les popups
+    setActiveRecurrence(null);
+    setRecurrenceForm({
+      frequency: 'semaine',
+      repeatEvery: 1,
+      repeatOn: {
+        monday: false,
+        tuesday: false,
+        wednesday: false,
+        thursday: false,
+        friday: false,
+        saturday: false,
+        sunday: false
+      },
+      endType: 'never',
+      endDate: '',
+      occurrences: 1
+    });
     closeEventPopup();
   };
 
@@ -364,22 +340,8 @@ const Dashboard = () => {
   // Fermer popup de récurrence
   const closeRecurrencePopup = () => {
     setShowRecurrencePopup(false);
-    setRecurrenceForm({
-      frequency: 'semaine',
-      repeatEvery: 1,
-      repeatOn: {
-        monday: false,
-        tuesday: false,
-        wednesday: false,
-        thursday: false,
-        friday: false,
-        saturday: false,
-        sunday: false
-      },
-      endType: 'never',
-      endDate: '',
-      occurrences: 1
-    });
+    // Sauvegarder la configuration de récurrence actuelle
+    setActiveRecurrence(recurrenceForm);
   };
 
   // Génère les dates d'occurrences selon la récurrence
@@ -391,7 +353,7 @@ const Dashboard = () => {
       endType,
       endDate,
       occurrences
-    } = recurrenceForm;
+    } = activeRecurrence || recurrenceForm;
 
     const startDate = new Date(eventForm.date);
     const startTime = eventForm.starting_hours;
@@ -399,212 +361,149 @@ const Dashboard = () => {
 
     let dates = [];
     let count = 0;
-    let current = new Date(startDate);
-
-    // Pour les jours sélectionnés (repeatOn)
-    const daysOfWeek = Object.entries(repeatOn)
-      .filter(([_, v]) => v)
-      .map(([k]) => {
-        // 0: dimanche, 1: lundi, ..., 6: samedi
-        return (
-          {
-            monday: 1,
-            tuesday: 2,
-            wednesday: 3,
-            thursday: 4,
-            friday: 5,
-            saturday: 6,
-            sunday: 0
-          }[k]
-        );
-      });
-
-    // Si aucun jour sélectionné, prendre le jour de départ
-    if (daysOfWeek.length === 0) {
-      daysOfWeek.push(current.getDay());
-    }
-
-    // Limite de sécurité
     const maxOccurrences = 100;
 
-    while (true) {
-      // Pour chaque semaine/mois, ajouter les jours sélectionnés
+    // Obtenir les jours sélectionnés
+    const selectedDays = Object.entries(repeatOn)
+      .filter(([_, selected]) => selected)
+      .map(([day]) => ({
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6,
+        sunday: 0
+      })[day]);
+
+    if (selectedDays.length === 0) {
+      selectedDays.push(startDate.getDay() || 7);
+    }
+
+    // Calculer la date de fin
+    const endDateLimit = endType === 'date' ? new Date(endDate)
+      : endType === 'occurrences' 
+        ? new Date(startDate.getTime() + (occurrences * (frequency === 'semaine' ? 7 : 31) * repeatEvery * 24 * 60 * 60 * 1000))
+        : new Date(startDate.getTime() + (maxOccurrences * 31 * 24 * 60 * 60 * 1000));
+
+    let currentDate = new Date(startDate);
+    let iterationCount = 0;
+
+    while (currentDate <= endDateLimit && count < maxOccurrences) {
       if (frequency === 'semaine') {
-        // Trouver la première semaine à partir de la date de départ
-        let weekStart = new Date(current);
-        // Pour chaque semaine
-        for (let week = 0; ; week++) {
-          // Pour chaque jour sélectionné
-          for (let d of daysOfWeek) {
-            // Calculer la date du jour dans la semaine
-            let dayDate = new Date(weekStart);
-            dayDate.setDate(weekStart.getDate() + ((d - weekStart.getDay() + 7) % 7) + week * 7 * repeatEvery);
-            // Ne pas ajouter avant la date de départ
-            if (dayDate < startDate) continue;
-            // Arrêt selon endType
-            if (endType === 'date' && endDate && dayDate > new Date(endDate)) return dates;
-            if (endType === 'occurrences' && count >= occurrences) return dates;
-            if (count >= maxOccurrences) return dates;
-            // Ajout
+        // Logique existante pour la récurrence hebdomadaire
+        let mondayOfWeek = new Date(currentDate);
+        mondayOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+
+        for (const dayNum of selectedDays) {
+          let eventDate = new Date(mondayOfWeek);
+          eventDate.setDate(mondayOfWeek.getDate() + (dayNum === 0 ? 6 : dayNum - 1));
+
+          if (eventDate >= startDate && eventDate <= endDateLimit) {
             dates.push({
-              date: dayDate.toISOString().split('T')[0],
+              date: eventDate.toISOString().split('T')[0],
               startTime,
               endTime
             });
             count++;
           }
-          // Arrêt selon endType
-          if (endType === 'occurrences' && count >= occurrences) return dates;
-          if (endType === 'date' && endDate && new Date(weekStart).setDate(weekStart.getDate() + 7 * repeatEvery) > new Date(endDate)) return dates;
-          if (count >= maxOccurrences) return dates;
         }
-      } else if (frequency === 'mois') {
-        // Pour chaque mois
-        let monthStart = new Date(current);
-        for (let month = 0; ; month++) {
-          for (let d of daysOfWeek) {
-            // Chercher le premier jour d dans le mois
-            let firstDayOfMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + month * repeatEvery, 1);
-            let dayInMonth = new Date(firstDayOfMonth);
-            dayInMonth.setDate(
-              1 +
-                ((d - firstDayOfMonth.getDay() + 7) % 7)
-            );
-            // Si ce jour est dans le bon mois
-            if (dayInMonth.getMonth() === firstDayOfMonth.getMonth()) {
-              // Ne pas ajouter avant la date de départ
-              if (dayInMonth < startDate) continue;
-              // Arrêt selon endType
-              if (endType === 'date' && endDate && dayInMonth > new Date(endDate)) return dates;
-              if (endType === 'occurrences' && count >= occurrences) return dates;
-              if (count >= maxOccurrences) return dates;
-              // Ajout
-              dates.push({
-                date: dayInMonth.toISOString().split('T')[0],
-                startTime,
-                endTime
-              });
-              count++;
-            }
-          }
-          // Arrêt selon endType
-          if (endType === 'occurrences' && count >= occurrences) return dates;
-          if (endType === 'date' && endDate && new Date(monthStart.getFullYear(), monthStart.getMonth() + (month + 1) * repeatEvery, 1) > new Date(endDate)) return dates;
-          if (count >= maxOccurrences) return dates;
-        }
+
+        // Avancer d'une semaine
+        currentDate.setDate(currentDate.getDate() + (7 * repeatEvery));
       } else {
-        // Par défaut, une seule occurrence
-        dates.push({
-          date: startDate.toISOString().split('T')[0],
-          startTime,
-          endTime
-        });
-        return dates;
+        // Logique pour la récurrence mensuelle
+        for (const dayNum of selectedDays) {
+          let eventDate = new Date(currentDate);
+          let week = Math.floor((startDate.getDate() - 1) / 7);
+          let dayInMonth = 1 + week * 7 + (dayNum === 0 ? 6 : dayNum - 1);
+          
+          eventDate.setDate(dayInMonth);
+
+          // Vérifier si la date est valide
+          if (eventDate.getMonth() === currentDate.getMonth() && 
+              eventDate >= startDate && 
+              eventDate <= endDateLimit) {
+            dates.push({
+              date: eventDate.toISOString().split('T')[0],
+              startTime,
+              endTime
+            });
+            count++;
+          }
+        }
+
+        // Avancer d'un mois
+        currentDate.setMonth(currentDate.getMonth() + repeatEvery);
+      }
+
+      iterationCount++;
+      if (endType === 'occurrences' && iterationCount >= occurrences) {
+        break;
       }
     }
+
+    return dates;
   };
 
   // Créer événement récurrent
-  const createRecurrentEvent = () => {
-    // Générer toutes les occurrences
-    const occurrences = generateRecurrenceDates();
+  // const createRecurrentEvent = () => {
+  //   // Générer toutes les occurrences
+  //   const occurrences = generateRecurrenceDates();
 
-    // Récupérer les infos sélectionnées
-    const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
-    const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
-    const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
+  //   // Récupérer les infos sélectionnées
+  //   const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
+  //   const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
+  //   const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
 
-    // Créer les événements
-    const newEvents = occurrences.map((occ, idx) => ({
-      id: `${Date.now()}_${idx}`,
-      title: `${selectedCours?.nom} - ${selectedGroupe?.nom}`,
-      start: `${occ.date}T${occ.startTime}:00`,
-      end: `${occ.date}T${occ.endTime}:00`,
-      backgroundColor: '#4CAF50',
-      borderColor: '#4CAF50',
-      textColor: '#ffffff',
-      extendedProps: {
-        groupe: selectedGroupe?.nom,
-        cours: selectedCours?.nom,
-        salle: selectedSalle?.nom
-      }
-    }));
+  //   // Créer les événements
+  //   const newEvents = occurrences.map((occ, idx) => ({
+  //     id: `${Date.now()}_${idx}`,
+  //     title: `${selectedCours?.nom} - ${selectedGroupe?.nom}`,
+  //     start: `${occ.date}T${occ.startTime}:00`,
+  //     end: `${occ.date}T${occ.endTime}:00`,
+  //     backgroundColor: '#4CAF50',
+  //     borderColor: '#4CAF50',
+  //     textColor: '#ffffff',
+  //     extendedProps: {
+  //       groupe: selectedGroupe?.nom,
+  //       cours: selectedCours?.nom,
+  //       salle: selectedSalle?.nom
+  //     }
+  //   }));
 
-    setEvents(prev => [...prev, ...newEvents]);
-    closeRecurrencePopup();
-    closeEventPopup();
-  };
+  //   setEvents(prev => [...prev, ...newEvents]);
+  //   closeRecurrencePopup();
+  //   closeEventPopup();
+  // };
 
-  const handleReserveRoom = ({ salle, campus }) => {
-    const salleId = salles.find(s => s.nom.toLowerCase().includes(salle.toLowerCase()))?.id;
-    
-    if (salleId) {
-      const now = new Date();
-      setEventForm(prev => ({
-        ...prev,
-        salle: salleId.toString(),
-        date: now.toISOString().split('T')[0],
-        starting_hours: '08:00',
-        finishing_hours: '09:00'
-      }));
-      setShowEventPopup(true);
-    }
-  };
+  const { previous, next, today } = navigationActions(calendarRef);
 
   return (
     <div className="dashboard-container">
-      {/* Barre de navigation latérale */}
-      <div className="sidebar">
-        <div className="logo">
-          <div className="logo-placeholder"></div>
-        </div>
-        <nav className="nav-menu">
-          <button className="nav-item active" onClick={() => navigate('/dashboard')}>
-            <div className="nav-icon home-icon"></div>
-          </button>
-          <button className="nav-item" onClick={() => navigate('/school')}>
-            <div className="nav-icon school-icon"></div>
-          </button>
-          <button className="nav-item" onClick={() => navigate('/campus')}>
-            <div className="nav-icon campus-icon"></div>
-          </button>
-          <button className="nav-item" onClick={() => navigate('/profile')}>
-            <div className="nav-icon profile-icon"></div>
-          </button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item" onClick={() => navigate('/settings')}>
-            <div className="nav-icon settings-icon"></div>
-          </button>
-        </div>
-      </div>
-
-      {/* Contenu principal */}
+      <Sidebar />
+      
       <div className="main-content">
-        {/* En-tête avec nom utilisateur et notification */}
         <header className="dashboard-header">
-          <div className="user-info">
-            Accueil
-          </div>
+          <div className="user-info">Accueil</div>
           <div className="notification-icon"></div>
         </header>
 
-        {/* CampusOverview component */}
-        <CampusOverview onReserveRoom={handleReserveRoom} />
+        <CampusOverview />
 
-        {/* Section calendrier avec FullCalendar */}
         <section className="dashboard-calendar-section">
+          {/* Calendar navigation controls */}
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>{formatDateHeader()}</span>
               <div className="navigation-buttons">
-                <button className="nav-button" onClick={previousWeek}>
+                <button className="nav-button" onClick={previous}>
                   &lt;
                 </button>
-                <button className="nav-button" onClick={goToToday}>
+                <button className="nav-button" onClick={today}>
                   Aujourd'hui
                 </button>
-                <button className="nav-button" onClick={nextWeek}>
+                <button className="nav-button" onClick={next}>
                   &gt;
                 </button>
               </div>
@@ -612,91 +511,36 @@ const Dashboard = () => {
             <div className="view-buttons">
               <button 
                 className={`nav-button ${currentView === 'timeGridWeek' ? 'active' : ''}`} 
-                onClick={() => changeView('timeGridWeek')}
+                onClick={() => changeViewHandler('timeGridWeek')}
               >
                 Semaine
               </button>
               <button 
                 className={`nav-button ${currentView === 'dayGridMonth' ? 'active' : ''}`} 
-                onClick={() => changeView('dayGridMonth')}
+                onClick={() => changeViewHandler('dayGridMonth')}
               >
                 Mois
               </button>
               <button 
                 className={`nav-button ${currentView === 'timeGridDay' ? 'active' : ''}`} 
-                onClick={() => changeView('timeGridDay')}
+                onClick={() => changeViewHandler('timeGridDay')}
               >
                 Jour
               </button>
             </div>
           </div>
 
-          {/* FullCalendar */}
           <div className="fullcalendar-container">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              headerToolbar={false}
+            <Calendar
+              calendarRef={calendarRef}
               events={events}
-              height="600px"
-              slotMinTime="08:00:00"
-              slotMaxTime="19:00:00"
-              slotDuration="01:00:00"
-              slotLabelInterval="02:00:00"
-              weekends={true}
-              editable={false}
-              selectable={true}
-              selectMirror={true}
-              dayMaxEvents={true}
-              weekNumbers={false}
-              navLinks={false}
-              locale="fr"
-              firstDay={1}
-              allDaySlot={false}
-              slotLabelFormat={{
-                hour: 'numeric',
-                minute: '2-digit',
-                omitZeroMinute: false,
-                meridiem: false
-              }}
-              eventTimeFormat={{
-                hour: 'numeric',
-                minute: '2-digit',
-                meridiem: false
-              }}
-              eventClick={handleEventClick}
-              select={handleDateSelect}
-              businessHours={{
-                daysOfWeek: [1, 2, 3, 4, 5],
-                startTime: '08:00',
-                endTime: '19:00',
-              }}
-              eventDidMount={(info) => {
-                info.el.style.borderRadius = '4px';
-                info.el.style.fontSize = '12px';
-              }}
-              selectAllow={() => true}
-              unselectAuto={false}
+              handleEventClick={handleEventClick}
+              handleDateSelect={handleDateSelect}
             />
           </div>
         </section>
 
-        {/* Section notifications */}
-        <section className="notifications-section">
-          <h2 className="section-title">Dernières notifications</h2>
-          <div className="notifications-list">
-            {notifications.map(notification => (
-              <div key={notification.id} className={`notification-item ${notification.type}`}>
-                <div className="notification-icon"></div>
-                <div className="notification-content">
-                  <div className="notification-message">{notification.message}</div>
-                  <div className="notification-detail">{notification.detail}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <NotificationsList notifications={notifications} />
       </div>
 
       {/* Popup d'ajout d'événement */}
@@ -924,8 +768,8 @@ const Dashboard = () => {
               <button className="cancel-button" onClick={closeRecurrencePopup}>
                 Annuler
               </button>
-              <button className="create-button" onClick={createRecurrentEvent}>
-                Terminé
+              <button className="create-button" onClick={closeRecurrencePopup}>
+                Appliquer
               </button>
             </div>
           </div>
