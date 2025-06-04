@@ -11,7 +11,7 @@ const addData = require('../controllers/backoffice/addData');
 router.post('/addUser', async (req, res) => {
     try {
         // APPEL LE CONTROLLER ICI 
-        // Et renvoyer un 201 
+        // Et renvoyer un 201, dans chaque route 
         return res.status(201).json({ message: 'Utilisateur ajouté avec succès.' });
     } catch(error) {
         console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
