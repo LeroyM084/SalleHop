@@ -26,7 +26,7 @@ const loginController = async (req) => {
         id: existingUser.identifiant,
         first_name: existingUser.prenom,
         last_name: existingUser.nom,
-        email: existingUser.email,
+        email: existingUser.email
     };
 }
 

@@ -57,8 +57,8 @@ const LoginPage = () => {
         const data = await res.json();
         
         // Stocker le token dans localStorage si présent
-        if (data.token) {
-          localStorage.setItem('authToken', data.token);
+        if (data.data.token) {
+          localStorage.setItem('authToken', data.data.token);
         }
         
         navigate('/dashboard'); // Redirection vers le tableau de bord après connexion

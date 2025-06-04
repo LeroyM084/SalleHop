@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "pg:search": "node backend/scripts/searchEngine",
+    "jwt:testing": "node backend/scripts/testToken",
     "db:sync": "node backend/scripts/syncDataBase",
     "db:addData": "node backend/scripts/addData",
     "db:deleteData": "node backend/scripts/deleteData",

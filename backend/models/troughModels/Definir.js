@@ -34,7 +34,8 @@ module.exports = (sequelize) => {
     },
     creneau_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      primaryKey: true,
+      allowNull: false,
       references: {
         model: 'creneau',
         key: 'identifiant'
