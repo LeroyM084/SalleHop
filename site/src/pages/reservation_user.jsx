@@ -125,7 +125,7 @@ const calculateBookingPosition = (booking) => {
             <div className="nav-icon home-icon"></div>
           </button>
           <button className="nav-item" onClick={() => navigateTo('/reservation')}>
-            <img src={require('../image/icon.png')} alt="Réservation" className="nav-img-icon" />
+            <div className="nav-icon calendar-icon"></div>
           </button>
           <button className="nav-item" onClick={() => navigateTo('/profile')}>
             <div className="nav-icon profile-icon"></div>

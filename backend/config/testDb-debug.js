@@ -2,6 +2,7 @@ require('dotenv').config(); // Charger les variables d'environnement
 const sequelize = require('./dbConfig'); // Importer la configuration de la connexion Sequelize
 
 const testerConnexion = async () => {
+  console.log('🔍 Test de connexion à la base de données...');
   try {
     // Tester la connexion à la base de données
     await sequelize.authenticate();
