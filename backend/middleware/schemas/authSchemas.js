@@ -1,20 +1,20 @@
-const JOI = require('joi');
+const joi = require('joi');
 
-const signUpSchema = JOI.object({
-    email: JOI.string().email().required(),
-    password: JOI.string().min(6).max(50).required(),
-    nom: JOI.string().min(2).max(30).required(),
-    prenom: JOI.string().min(2).max(30).required(),
-    role: JOI.string().valid('admin', 'formateur', 'etudiant').default('formateur').required(),
-    campusName: JOI.string().required(),
+// This file defines two schemas using JOI for validating user sign-up and login data.
+
+const signUpSchema = joi.object({
+    first_name: joi.string().min(2).max(50).required(),
+    last_name: joi.string().min(2).max(50).required(),
+    email: joi.string().email().required(),
+    password: joi.string().min(8).max(100).required(),
 })
 
-const loginSchema = JOI.object({
-    email: JOI.string().email().required(),
-    motdepasse: JOI.string().min(6).max(50).required(),
+const loginSchema = joi.object({
+    email: joi.string().email().required(),
+    password: joi.string().min(8).max(100).required(),
 })
 
 module.exports = {
     signUpSchema,
-    loginSchema,
-}
+    loginSchema
+};

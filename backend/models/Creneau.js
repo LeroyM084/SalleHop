@@ -18,7 +18,17 @@ module.exports = (sequelize) => {
     heure_fin: {
       type: DataTypes.TIME,
       allowNull: false
-    }
+    },
+    status : {
+      type: DataTypes.STRING,
+      // N'accepte que les valeurs suivantes : 'validé', 'en attente', 'refusé'
+      // Permet de savoir si le créneau est validé, en attente ou refusé
+      validate: {
+        isIn: [['validé', 'en attente', 'refusé']]
+      },
+      allowNull: false,
+      defaultValue: 'en attente'
+    },
   }, {
     tableName: 'creneau',
     timestamps: false,
