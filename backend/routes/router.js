@@ -3,6 +3,7 @@ const router = express.Router();
 // On définit un router de routeur, et chaque route aura son propre chemin
 
 router.use('/auth', require('./authRouter'));
+router.use('/backoffice', require('./backoffice')); // /api/backoffice/"Routes présentes dans backoffice.js"
 router.use('/events', require('./addEventRouter')); // /api/events/"Routes présentes dans addEventRouter.js"
 router.use('/events', require('./getEventRouter')); // /api/Events/"Routes présentes dans getEventRouter.js"
 
