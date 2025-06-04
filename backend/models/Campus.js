@@ -1,22 +1,37 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/dbConfig'); // Importer la configuration de la connexion Sequelize
 
-// Ce fichier définit le modèle Campus pour la table "membre" dans la base de données.
+module.exports = (sequelize) => {
+    const Campus = sequelize.define('campus', {
+        identifiant: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        nom: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        adresse: {
+            type: DataTypes.STRING,
+            allowNull: false
+        }
+    }, {
+        tableName: 'campus',
+        timestamps: false,
+        freezeTableName: true
+    });
 
-const Campus = sequelize.define('Campus', {
-    id:{
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    nom: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    adresse: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-});
+    Campus.associate = (models) => {
+        Campus.belongsToMany(models.ecole, {
+            through: models.EtreRattache,
+            foreignKey: 'campus_id',
+            otherKey: 'ecole_id'
+        });
 
-module.exports = Campus; // Exporter le modèle pour l'utiliser dans d'autres fichiers
+        Campus.hasMany(models.salle, {
+            foreignKey: 'campus_id'
+        });
+    };
+
+    return Campus;
+};

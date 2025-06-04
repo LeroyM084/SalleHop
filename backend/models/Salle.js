@@ -1,31 +1,41 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/dbConfig'); // Importer la configuration de la connexion Sequelize
 
-// Ce fichier définit le modèle salle entre la base de données et le sequelize. 
-
-const Salle = sequelize.define('Salle', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    id_campus: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'campus',
-            key: 'id',
+module.exports = (sequelize) => {
+    const Salle = sequelize.define('salle', {
+        identifiant: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-    },
-    numSalle: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    }
-}, {
-    tableName: 'salle',
-    timestamps: false, // Désactiver les timestamps automatiques
-});
+        nom: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        campus_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'campus',
+                key: 'identifiant'
+            }
+        }
+    }, {
+        tableName: 'salle',
+        timestamps: false,
+        freezeTableName: true
+    });
 
-module.exports = Salle;
+    Salle.associate = (models) => {
+        Salle.belongsTo(models.campus, {
+            foreignKey: 'campus_id'
+        });
+
+        Salle.belongsToMany(models.creneau, {
+            through: models.Definir,
+            foreignKey: 'salle_id',
+            otherKey: 'creneau_id'
+        });
+    };
+
+    return Salle;
+};
