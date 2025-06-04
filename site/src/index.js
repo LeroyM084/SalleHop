@@ -1,6 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ReactDOM from 'react-dom/client'; // Importer createRoot depuis react-dom/client
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './index.css';
 import LoginPage from './pages/login';
 import Dashboard from './pages/dashboard';
@@ -9,12 +9,14 @@ import Reservation_user from './pages/reservation_user';
 import CampusAdmin from './pages/campus_admin';
 import SchoolAdmin from './pages/school_admin';
 import { AuthProvider } from './context/AuthContext';
+import Backoffice from './pages/Backoffice';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById('root')); // Utiliser createRoot
+
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -22,8 +24,9 @@ root.render(
           <Route path="/profile" element={<Profile />} />
           <Route path="/campus" element={<CampusAdmin />} />
           <Route path="/school" element={<SchoolAdmin />} />
+          <Route path="/backoffice" element={<Backoffice />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
     </AuthProvider>
   </React.StrictMode>
 );
