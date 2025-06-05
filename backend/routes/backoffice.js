@@ -25,3 +25,5 @@ router.post('/addData', async (req, res) => {
         return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
     }
 });
+
+module.exports = router;

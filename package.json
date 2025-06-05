@@ -10,7 +10,7 @@
     "db:addData": "node backend/scripts/addData",
     "db:deleteData": "node backend/scripts/deleteData",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "pm2 start ./backend/start.js --name salleHop-back && pm2 start npm --name sallehop-front -- start --prefix site"
+    "start": "pm2 start ./backend/start.js --name salleHop-back --output ./backend/logs/out.log --error ./backend/logs/error.log && pm2 start npm --name sallehop-front -- start --prefix site"
   },
   "repository": {
     "type": "git",
