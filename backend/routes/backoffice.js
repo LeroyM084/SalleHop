@@ -8,79 +8,20 @@ const addData = require('../controllers/backoffice/addData');
 // Changer le nom de chaque toure, appeller le bon controlleur dans le fichier controller/backoffice/addData.js
 
 
-router.post('/addUser', async (req, res) => {
+router.post('/addData', async (req, res) => {
     try {
-        // APPEL LE CONTROLLER ICI 
-        // Et renvoyer un 201, dans chaque route 
+        const data = req.body;
+        if (!data || Object.keys(data).length === 0) {
+            return res.status(400).json({ message: 'Aucune donnée fournie.' });
+        }
+        const result = await addData(data);
+        if(!result.status === 'ok'){
+            return res.status(500).json({message : "Erreur du controlleur", error : result.error});
+        } 
+        
         return res.status(201).json({ message: 'Utilisateur ajouté avec succès.' });
     } catch(error) {
         console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
         return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
     }
 });
-
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-
-router.post('/addUser', async (req, res) => {
-    try {
-        // APPEL LE CONTROLLER ICI 
-    } catch(error) {
-        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-        return res.status(500).json({ message: 'Erreur interne du serveur.', error: error.message });
-    }
-});
-

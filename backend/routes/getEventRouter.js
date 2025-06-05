@@ -72,4 +72,27 @@ router.post('/TimeSlot/:campusId',
     }
 );
 
+// Récupérer les évènements d'une salle sur une journée 
+router.get('/:salle', 
+    tokenValidation, 
+    // dataTypeValidation(getEventSchema),
+    async(req,res)=> {
+        try{
+            const salleId = req.params;
+            const date = req.body.date;
+
+            if(!date){
+                return res.status(400).json({ message: 'Date manquante pour la récupération des évènements.' });
+            }
+
+            // @ TODO: Appeler le controleur, faire un catch. Pourquoi pas un index dans la BDD
+        } catch(error) {
+            console.error('Erreur lors de la récupération des évènements de la salle:', error);
+            return res.status(500).json({
+                message: 'Erreur lors de la récupération des évènements de la salle',
+                error: error.message
+            });
+    }}
+);
+
 module.exports = router;
