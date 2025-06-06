@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'; // Ajout de useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Calendar from '../components/calendar/Calendar';
-import NotificationsList from '../components/notifications/NotificationsList';
 import { useCalendar } from '../hooks/useCalendar';
-import { groupes, salles, notifications } from '../data/mockData';
+import { groupes, salles } from '../data/mockData'; // Supprimé notifications
 import './dashboard.css';
+
 import CampusOverview from './CampusOverview';
 import { createEvent } from '../services/eventService';
 
@@ -504,21 +504,9 @@ const generateEventsFromResponse = (eventData) => {
         <CampusOverview />
 
         <section className="dashboard-calendar-section">
-          {/* Calendar navigation controls */}
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>{formatDateHeader()}</span>
-              <div className="navigation-buttons">
-                <button className="nav-button" onClick={previous}>
-                  &lt;
-                </button>
-                <button className="nav-button" onClick={today}>
-                  Aujourd'hui
-                </button>
-                <button className="nav-button" onClick={next}>
-                  &gt;
-                </button>
-              </div>
             </div>
             <div className="view-buttons">
               <button 
@@ -555,242 +543,7 @@ const generateEventsFromResponse = (eventData) => {
             )}
           </div>
         </section>
-
-        <NotificationsList notifications={notifications} />
       </div>
-
-      {/* Popup d'ajout d'événement */}
-      {showEventPopup && (
-        <div className="event-popup-overlay">
-          <div className="event-popup">
-            <div className="popup-header">
-              <h3>Nouveau créneau de cours</h3>
-              <button className="close-button" onClick={closeEventPopup}>×</button>
-            </div>
-            
-            <div className="popup-content">
-              <div className="form-group">
-                <label>Groupe *</label>
-                <select
-                  value={eventForm.groupe}
-                  onChange={(e) => handleFormChange('groupe', e.target.value)}
-                  required
-                >
-                  <option value="">Sélectionnez un groupe</option>
-                  {groupes.map(groupe => (
-                    <option key={groupe.id} value={groupe.id}>{groupe.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Cours *</label>
-                <select
-                  value={eventForm.cours}
-                  onChange={(e) => handleFormChange('cours', e.target.value)}
-                  disabled={!eventForm.groupe}
-                  required
-                >
-                  <option value="">Sélectionnez un cours</option>
-                  {cours.map(coursItem => (
-                    <option key={coursItem.id} value={coursItem.id}>{coursItem.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Salle *</label>
-                <select
-                  value={eventForm.salle}
-                  onChange={(e) => handleFormChange('salle', e.target.value)}
-                  required
-                >
-                  <option value="">Sélectionnez une salle</option>
-                  {salles.map(salle => (
-                    <option key={salle.id} value={salle.id}>{salle.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Date *</label>
-                <input
-                  type="date"
-                  value={eventForm.date}
-                  onChange={(e) => handleFormChange('date', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Heure de début *</label>
-                  <input
-                    type="time"
-                    value={eventForm.starting_hours}
-                    onChange={(e) => handleFormChange('starting_hours', e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Heure de fin *</label>
-                  <input
-                    type="time"
-                    value={eventForm.finishing_hours}
-                    onChange={(e) => handleFormChange('finishing_hours', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {selectedDates && (
-                <div className="date-info">
-                  <strong>Créneau sélectionné:</strong><br/>
-                  Du {new Date(selectedDates.start).toLocaleString('fr-FR')} <br/>
-                  Au {new Date(selectedDates.end).toLocaleString('fr-FR')}
-                </div>
-              )}
-            </div>
-
-            <div className="popup-footer">
-              <button className="recurrence-button" onClick={openRecurrencePopup}>
-                + Récurrence
-              </button>
-              <div className="footer-buttons">
-                <button className="cancel-button" onClick={closeEventPopup}>
-                  Annuler
-                </button>
-                <button className="create-button" onClick={handleCreateEvent}>
-                  Créer le créneau
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Popup de récurrence */}
-      {showRecurrencePopup && (
-        <div className="event-popup-overlay">
-          <div className="recurrence-popup">
-            <div className="popup-header">
-              <h3>Récurrence personnalisée</h3>
-              <button className="close-button" onClick={closeRecurrencePopup}>×</button>
-            </div>
-            
-            <div className="popup-content">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Répéter tout(e)s les</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={recurrenceForm.repeatEvery}
-                    onChange={(e) => handleRecurrenceChange('repeatEvery', parseInt(e.target.value))}
-                  />
-                </div>
-                <div className="form-group">
-                  <select
-                    value={recurrenceForm.frequency}
-                    onChange={(e) => handleRecurrenceChange('frequency', e.target.value)}
-                  >
-                    <option value="semaine">semaine</option>
-                    <option value="mois">mois</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Répéter le</label>
-                <div className="day-selector">
-                  {[
-                    { key: 'monday', label: 'L', full: 'Lundi' },
-                    { key: 'tuesday', label: 'M', full: 'Mardi' },
-                    { key: 'wednesday', label: 'M', full: 'Mercredi' },
-                    { key: 'thursday', label: 'J', full: 'Jeudi' },
-                    { key: 'friday', label: 'V', full: 'Vendredi' },
-                    { key: 'saturday', label: 'S', full: 'Samedi' },
-                    { key: 'sunday', label: 'D', full: 'Dimanche' }
-                  ].map(day => (
-                    <button
-                      key={day.key}
-                      type="button"
-                      className={`day-button ${recurrenceForm.repeatOn[day.key] ? 'selected' : ''}`}
-                      onClick={() => handleRecurrenceChange(`repeatOn.${day.key}`, !recurrenceForm.repeatOn[day.key])}
-                      title={day.full}
-                    >
-                      {day.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Se termine</label>
-                <div className="end-options">
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="never"
-                      checked={recurrenceForm.endType === 'never'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Jamais</span>
-                  </label>
-                  
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="date"
-                      checked={recurrenceForm.endType === 'date'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Le</span>
-                    <input
-                      type="date"
-                      value={recurrenceForm.endDate}
-                      onChange={(e) => handleRecurrenceChange('endDate', e.target.value)}
-                      disabled={recurrenceForm.endType !== 'date'}
-                      className="inline-input"
-                    />
-                  </label>
-                  
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="occurrences"
-                      checked={recurrenceForm.endType === 'occurrences'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Après</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={recurrenceForm.occurrences}
-                      onChange={(e) => handleRecurrenceChange('occurrences', parseInt(e.target.value))}
-                      disabled={recurrenceForm.endType !== 'occurrences'}
-                      className="inline-input"
-                    />
-                    <span>occurrences</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="popup-footer">
-              <button className="cancel-button" onClick={closeRecurrencePopup}>
-                Annuler
-              </button>
-              <button className="create-button" onClick={closeRecurrencePopup}>
-                Appliquer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

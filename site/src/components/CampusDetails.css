@@ -1,0 +1,175 @@
+.campus-details-container {
+  width: 100%;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.content {
+  padding: 16px;
+  margin-top: 0;
+}
+
+.room-search-section {
+  padding: 0;
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.room-search-section.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+}
+
+.room-search-section.expanded {
+  max-height: 400px;
+  opacity: 1;
+  padding: 16px;
+}
+
+.search-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-group input, 
+.filter-group select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.filter-group input:focus, 
+.filter-group select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.search-button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 42px;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.search-button:hover {
+  background-color: #45a049;
+}
+
+.rooms-section {
+  margin-top: 20px;
+}
+
+.available-rooms {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.room-name {
+  font-size: 14px;
+  color: #333;
+}
+
+.reserve-button {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.reserve-button:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .room-search-section.expanded {
+    padding: 16px;
+    max-height: 500px;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filter-group {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .search-button {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .search-filters {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .room-search-section.expanded {
+    padding: 12px;
+    left: -10px;
+    right: -10px;
+  }
+}
