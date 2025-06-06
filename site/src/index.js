@@ -14,19 +14,17 @@ import Backoffice from './pages/Backoffice';
 const root = ReactDOM.createRoot(document.getElementById('root')); // Utiliser createRoot
 
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/reservation" element={<Reservation_user />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/campus" element={<CampusAdmin />} />
-          <Route path="/school" element={<SchoolAdmin />} />
-          <Route path="/backoffice" element={<Backoffice />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  </React.StrictMode>
+  <AuthProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/reservation" element={<Reservation_user />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/campus" element={<CampusAdmin />} />
+        <Route path="/school" element={<SchoolAdmin />} />
+        <Route path="/backoffice" element={<Backoffice />} />
+      </Routes>
+    </Router>
+  </AuthProvider>
 );

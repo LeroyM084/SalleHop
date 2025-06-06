@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'; // Ajout de useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Calendar from '../components/calendar/Calendar';
-import NotificationsList from '../components/notifications/NotificationsList';
 import { useCalendar } from '../hooks/useCalendar';
-import { groupes, salles, notifications } from '../data/mockData';
+import { groupes, salles } from '../data/mockData'; // Supprimé notifications
 import './dashboard.css';
+
 import CampusOverview from './CampusOverview';
 import { createEvent } from '../services/eventService';
 
@@ -87,74 +87,84 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Fonction pour transformer les événements de l'API en format calendrier
-  const transformEvents = (apiEvents) => {
-    console.log('Transforming events:', apiEvents); // Debug log
+const transformEvents = (apiEvents) => {
+    console.log('Transforming events:', apiEvents); 
     return apiEvents.map(event => {
-        try {
-            const transformedEvent = {
-                id: event.id,
-                title: event.cours?.nom || 'Cours sans nom',
-                start: `${event.date}T${event.heure_debut}`,
-                end: `${event.date}T${event.heure_fin}`,
-                backgroundColor: '#4CAF50',
-                borderColor: '#4CAF50',
-                textColor: '#ffffff',
-                extendedProps: {
-                    salle: event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie'
-                }
-            };
-            console.log('Transformed event:', transformedEvent); // Debug log
-            return transformedEvent;
-        } catch (error) {
-            console.error('Error transforming event:', event, error);
-            return null;
-        }
-    }).filter(Boolean); // Filtrer les événements null
+      try {
+        const salleName = event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie';
+        const transformedEvent = {
+          id: event.id,
+          title: `${event.cours?.nom || 'Cours sans nom'} - ${salleName}`, // Ajout de la salle dans le titre
+          start: `${event.date.split('T')[0]}T${event.heure_debut}`,
+          end: `${event.date.split('T')[0]}T${event.heure_fin}`,
+          backgroundColor: '#4CAF50',
+          borderColor: '#4CAF50',
+          textColor: '#ffffff',
+          extendedProps: {
+            salle: salleName,
+            cours: event.cours?.nom,
+            groupe: event.groupe?.nom,
+            status: event.status
+          }
+        };
+        console.log('Transformed event:', transformedEvent);
+        return transformedEvent;
+      } catch (error) {
+        console.error('Error transforming event:', event, error);
+        return null;
+      }
+    }).filter(Boolean);
 };
 
   // Fetch des événements au chargement
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          navigate('/login');
-          return;
+useEffect(() => {
+  let isMounted = true; // Pour éviter les mises à jour si le composant est démonté
+
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch('http://10.111.9.158:8200/api/events/events', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      });
 
-        console.log('Fetching events...'); // Debug log
-        const response = await fetch('http://localhost:8200/api/events/events', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const data = await response.json();
 
-        const data = await response.json();
-        console.log('Raw API response:', data); // Debug log
-
-        if (data.data && Array.isArray(data.data)) {
-          const transformedEvents = transformEvents(data.data);
-          console.log('Final events to display:', transformedEvents); // Debug log
-          setEvents(transformedEvents);
-        } else {
-          console.log('No events data found in response');
-          setEvents([]);
-        }
-      } catch (error) {
+      // Vérifier si le composant est toujours monté
+      if (isMounted && data.data && Array.isArray(data.data)) {
+        const transformedEvents = transformEvents(data.data);
+        setEvents(transformedEvents);
+      }
+    } catch (error) {
+      if (isMounted) {
         console.error('Error fetching events:', error);
         setEvents([]);
-      } finally {
+      }
+    } finally {
+      if (isMounted) {
         setIsLoading(false);
       }
-    };
+    }
+  };
 
-    fetchEvents();
-  }, [navigate]); // Ajoute navigate comme dépendance
+  fetchEvents();
+
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+}, []); // Ajoute navigate comme dépendance
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
@@ -215,10 +225,15 @@ const Dashboard = () => {
   };
 
   // Gestionnaires d'événements FullCalendar
-  const handleEventClick = (clickInfo) => {
-    const event = clickInfo.event;
-    alert(`Cours: ${event.title}\nGroupe: ${event.extendedProps.groupe}\nSalle: ${event.extendedProps.salle}`);
-  };
+ const handleEventClick = (clickInfo) => {
+  const event = clickInfo.event;
+  alert(
+    `Cours: ${event.extendedProps.cours}\n` +
+    `Salle: ${event.extendedProps.salle}\n` +
+    `Groupe: ${event.extendedProps.groupe || 'Non défini'}\n` +
+    `Statut: ${event.extendedProps.status || 'En attente'}`
+  );
+};
 
   const handleDateSelect = (selectInfo) => {
     setSelectedDates(selectInfo);
@@ -489,21 +504,9 @@ const generateEventsFromResponse = (eventData) => {
         <CampusOverview />
 
         <section className="dashboard-calendar-section">
-          {/* Calendar navigation controls */}
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>{formatDateHeader()}</span>
-              <div className="navigation-buttons">
-                <button className="nav-button" onClick={previous}>
-                  &lt;
-                </button>
-                <button className="nav-button" onClick={today}>
-                  Aujourd'hui
-                </button>
-                <button className="nav-button" onClick={next}>
-                  &gt;
-                </button>
-              </div>
             </div>
             <div className="view-buttons">
               <button 
@@ -540,242 +543,7 @@ const generateEventsFromResponse = (eventData) => {
             )}
           </div>
         </section>
-
-        <NotificationsList notifications={notifications} />
       </div>
-
-      {/* Popup d'ajout d'événement */}
-      {showEventPopup && (
-        <div className="event-popup-overlay">
-          <div className="event-popup">
-            <div className="popup-header">
-              <h3>Nouveau créneau de cours</h3>
-              <button className="close-button" onClick={closeEventPopup}>×</button>
-            </div>
-            
-            <div className="popup-content">
-              <div className="form-group">
-                <label>Groupe *</label>
-                <select
-                  value={eventForm.groupe}
-                  onChange={(e) => handleFormChange('groupe', e.target.value)}
-                  required
-                >
-                  <option value="">Sélectionnez un groupe</option>
-                  {groupes.map(groupe => (
-                    <option key={groupe.id} value={groupe.id}>{groupe.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Cours *</label>
-                <select
-                  value={eventForm.cours}
-                  onChange={(e) => handleFormChange('cours', e.target.value)}
-                  disabled={!eventForm.groupe}
-                  required
-                >
-                  <option value="">Sélectionnez un cours</option>
-                  {cours.map(coursItem => (
-                    <option key={coursItem.id} value={coursItem.id}>{coursItem.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Salle *</label>
-                <select
-                  value={eventForm.salle}
-                  onChange={(e) => handleFormChange('salle', e.target.value)}
-                  required
-                >
-                  <option value="">Sélectionnez une salle</option>
-                  {salles.map(salle => (
-                    <option key={salle.id} value={salle.id}>{salle.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Date *</label>
-                <input
-                  type="date"
-                  value={eventForm.date}
-                  onChange={(e) => handleFormChange('date', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Heure de début *</label>
-                  <input
-                    type="time"
-                    value={eventForm.starting_hours}
-                    onChange={(e) => handleFormChange('starting_hours', e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Heure de fin *</label>
-                  <input
-                    type="time"
-                    value={eventForm.finishing_hours}
-                    onChange={(e) => handleFormChange('finishing_hours', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {selectedDates && (
-                <div className="date-info">
-                  <strong>Créneau sélectionné:</strong><br/>
-                  Du {new Date(selectedDates.start).toLocaleString('fr-FR')} <br/>
-                  Au {new Date(selectedDates.end).toLocaleString('fr-FR')}
-                </div>
-              )}
-            </div>
-
-            <div className="popup-footer">
-              <button className="recurrence-button" onClick={openRecurrencePopup}>
-                + Récurrence
-              </button>
-              <div className="footer-buttons">
-                <button className="cancel-button" onClick={closeEventPopup}>
-                  Annuler
-                </button>
-                <button className="create-button" onClick={handleCreateEvent}>
-                  Créer le créneau
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Popup de récurrence */}
-      {showRecurrencePopup && (
-        <div className="event-popup-overlay">
-          <div className="recurrence-popup">
-            <div className="popup-header">
-              <h3>Récurrence personnalisée</h3>
-              <button className="close-button" onClick={closeRecurrencePopup}>×</button>
-            </div>
-            
-            <div className="popup-content">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Répéter tout(e)s les</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={recurrenceForm.repeatEvery}
-                    onChange={(e) => handleRecurrenceChange('repeatEvery', parseInt(e.target.value))}
-                  />
-                </div>
-                <div className="form-group">
-                  <select
-                    value={recurrenceForm.frequency}
-                    onChange={(e) => handleRecurrenceChange('frequency', e.target.value)}
-                  >
-                    <option value="semaine">semaine</option>
-                    <option value="mois">mois</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Répéter le</label>
-                <div className="day-selector">
-                  {[
-                    { key: 'monday', label: 'L', full: 'Lundi' },
-                    { key: 'tuesday', label: 'M', full: 'Mardi' },
-                    { key: 'wednesday', label: 'M', full: 'Mercredi' },
-                    { key: 'thursday', label: 'J', full: 'Jeudi' },
-                    { key: 'friday', label: 'V', full: 'Vendredi' },
-                    { key: 'saturday', label: 'S', full: 'Samedi' },
-                    { key: 'sunday', label: 'D', full: 'Dimanche' }
-                  ].map(day => (
-                    <button
-                      key={day.key}
-                      type="button"
-                      className={`day-button ${recurrenceForm.repeatOn[day.key] ? 'selected' : ''}`}
-                      onClick={() => handleRecurrenceChange(`repeatOn.${day.key}`, !recurrenceForm.repeatOn[day.key])}
-                      title={day.full}
-                    >
-                      {day.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Se termine</label>
-                <div className="end-options">
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="never"
-                      checked={recurrenceForm.endType === 'never'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Jamais</span>
-                  </label>
-                  
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="date"
-                      checked={recurrenceForm.endType === 'date'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Le</span>
-                    <input
-                      type="date"
-                      value={recurrenceForm.endDate}
-                      onChange={(e) => handleRecurrenceChange('endDate', e.target.value)}
-                      disabled={recurrenceForm.endType !== 'date'}
-                      className="inline-input"
-                    />
-                  </label>
-                  
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="endType"
-                      value="occurrences"
-                      checked={recurrenceForm.endType === 'occurrences'}
-                      onChange={(e) => handleRecurrenceChange('endType', e.target.value)}
-                    />
-                    <span>Après</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={recurrenceForm.occurrences}
-                      onChange={(e) => handleRecurrenceChange('occurrences', parseInt(e.target.value))}
-                      disabled={recurrenceForm.endType !== 'occurrences'}
-                      className="inline-input"
-                    />
-                    <span>occurrences</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="popup-footer">
-              <button className="cancel-button" onClick={closeRecurrencePopup}>
-                Annuler
-              </button>
-              <button className="create-button" onClick={closeRecurrencePopup}>
-                Appliquer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
