@@ -32,7 +32,7 @@ const LoginPage = () => {
     
     try {
       // Correction des erreurs dans la requête fetch
-      const res = await fetch('http://localhost:8200/api/auth/login', {
+      const res = await fetch('http://10.111.9.158:8200/api/auth/login', {
         method: 'POST', // 'method' au lieu de 'methods'
         headers: { // 'headers' au lieu de 'header'
           'Content-Type': 'application/json'

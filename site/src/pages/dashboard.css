@@ -838,3 +838,69 @@
   font-size: 1.2rem;
   color: #666;
 }
+
+
+.room-search-section {
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.search-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-button {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 36px;
+}
+
+.search-button:hover {
+  background-color: #45a049;
+}
+
+/* Ajustements pour les salles existantes */
+.rooms-section {
+  margin-top: 20px;
+}
+
+.available-rooms {
+  max-height: 300px;
+  overflow-y: auto;
+}

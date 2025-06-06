@@ -87,74 +87,84 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Fonction pour transformer les événements de l'API en format calendrier
-  const transformEvents = (apiEvents) => {
-    console.log('Transforming events:', apiEvents); // Debug log
+const transformEvents = (apiEvents) => {
+    console.log('Transforming events:', apiEvents); 
     return apiEvents.map(event => {
-        try {
-            const transformedEvent = {
-                id: event.id,
-                title: event.cours?.nom || 'Cours sans nom',
-                start: `${event.date}T${event.heure_debut}`,
-                end: `${event.date}T${event.heure_fin}`,
-                backgroundColor: '#4CAF50',
-                borderColor: '#4CAF50',
-                textColor: '#ffffff',
-                extendedProps: {
-                    salle: event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie'
-                }
-            };
-            console.log('Transformed event:', transformedEvent); // Debug log
-            return transformedEvent;
-        } catch (error) {
-            console.error('Error transforming event:', event, error);
-            return null;
-        }
-    }).filter(Boolean); // Filtrer les événements null
+      try {
+        const salleName = event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie';
+        const transformedEvent = {
+          id: event.id,
+          title: `${event.cours?.nom || 'Cours sans nom'} - ${salleName}`, // Ajout de la salle dans le titre
+          start: `${event.date.split('T')[0]}T${event.heure_debut}`,
+          end: `${event.date.split('T')[0]}T${event.heure_fin}`,
+          backgroundColor: '#4CAF50',
+          borderColor: '#4CAF50',
+          textColor: '#ffffff',
+          extendedProps: {
+            salle: salleName,
+            cours: event.cours?.nom,
+            groupe: event.groupe?.nom,
+            status: event.status
+          }
+        };
+        console.log('Transformed event:', transformedEvent);
+        return transformedEvent;
+      } catch (error) {
+        console.error('Error transforming event:', event, error);
+        return null;
+      }
+    }).filter(Boolean);
 };
 
   // Fetch des événements au chargement
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          navigate('/login');
-          return;
+useEffect(() => {
+  let isMounted = true; // Pour éviter les mises à jour si le composant est démonté
+
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch('http://10.111.9.158:8200/api/events/events', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      });
 
-        console.log('Fetching events...'); // Debug log
-        const response = await fetch('http://localhost:8200/api/events/events', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const data = await response.json();
 
-        const data = await response.json();
-        console.log('Raw API response:', data); // Debug log
-
-        if (data.data && Array.isArray(data.data)) {
-          const transformedEvents = transformEvents(data.data);
-          console.log('Final events to display:', transformedEvents); // Debug log
-          setEvents(transformedEvents);
-        } else {
-          console.log('No events data found in response');
-          setEvents([]);
-        }
-      } catch (error) {
+      // Vérifier si le composant est toujours monté
+      if (isMounted && data.data && Array.isArray(data.data)) {
+        const transformedEvents = transformEvents(data.data);
+        setEvents(transformedEvents);
+      }
+    } catch (error) {
+      if (isMounted) {
         console.error('Error fetching events:', error);
         setEvents([]);
-      } finally {
+      }
+    } finally {
+      if (isMounted) {
         setIsLoading(false);
       }
-    };
+    }
+  };
 
-    fetchEvents();
-  }, [navigate]); // Ajoute navigate comme dépendance
+  fetchEvents();
+
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+}, []); // Ajoute navigate comme dépendance
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
@@ -215,10 +225,15 @@ const Dashboard = () => {
   };
 
   // Gestionnaires d'événements FullCalendar
-  const handleEventClick = (clickInfo) => {
-    const event = clickInfo.event;
-    alert(`Cours: ${event.title}\nGroupe: ${event.extendedProps.groupe}\nSalle: ${event.extendedProps.salle}`);
-  };
+ const handleEventClick = (clickInfo) => {
+  const event = clickInfo.event;
+  alert(
+    `Cours: ${event.extendedProps.cours}\n` +
+    `Salle: ${event.extendedProps.salle}\n` +
+    `Groupe: ${event.extendedProps.groupe || 'Non défini'}\n` +
+    `Statut: ${event.extendedProps.status || 'En attente'}`
+  );
+};
 
   const handleDateSelect = (selectInfo) => {
     setSelectedDates(selectInfo);
