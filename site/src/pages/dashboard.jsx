@@ -212,14 +212,7 @@ const Dashboard = () => {
     };
 
     fetchApiData();
-  }, [navigate]);
-  fetchEvents();
-
-  // Cleanup function
-  return () => {
-    isMounted = false;
-  };
-}, []); // Ajoute navigate comme dépendance
+}, [navigate]);
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
