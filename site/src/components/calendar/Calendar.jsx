@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
-const Calendar = ({ calendarRef, events, handleEventClick, handleDateSelect }) => {
+const Calendar = React.memo(({ calendarRef, events, handleEventClick, handleDateSelect }) => {
   console.log('Calendar received events:', events); // Debug log
   return (
     <FullCalendar
@@ -52,6 +52,6 @@ const Calendar = ({ calendarRef, events, handleEventClick, handleDateSelect }) =
       unselectAuto={false}
     />
   );
-};
+});
 
 export default Calendar;

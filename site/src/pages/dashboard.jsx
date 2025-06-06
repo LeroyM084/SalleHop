@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'; // Ajout de useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Calendar from '../components/calendar/Calendar';
-import NotificationsList from '../components/notifications/NotificationsList';
 import { useCalendar } from '../hooks/useCalendar';
-import { groupes, salles, notifications } from '../data/mockData';
+import { groupes, salles } from '../data/mockData'; // Supprimé notifications
 import './dashboard.css';
+
 import CampusOverview from './CampusOverview';
 import { createEvent } from '../services/eventService';
 
@@ -151,6 +151,9 @@ const Dashboard = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       console.log('Raw API response:', data); // Debug log
@@ -210,6 +213,13 @@ const Dashboard = () => {
 
     fetchApiData();
   }, [navigate]);
+  fetchEvents();
+
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+}, []); // Ajoute navigate comme dépendance
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
@@ -270,10 +280,15 @@ const Dashboard = () => {
   };
 
   // Gestionnaires d'événements FullCalendar
-  const handleEventClick = (clickInfo) => {
-    const event = clickInfo.event;
-    alert(`Cours: ${event.title}\nGroupe: ${event.extendedProps.groupe}\nSalle: ${event.extendedProps.salle}`);
-  };
+ const handleEventClick = (clickInfo) => {
+  const event = clickInfo.event;
+  alert(
+    `Cours: ${event.extendedProps.cours}\n` +
+    `Salle: ${event.extendedProps.salle}\n` +
+    `Groupe: ${event.extendedProps.groupe || 'Non défini'}\n` +
+    `Statut: ${event.extendedProps.status || 'En attente'}`
+  );
+};
 
   const handleDateSelect = (selectInfo) => {
     setSelectedDates(selectInfo);
@@ -551,21 +566,9 @@ const generateEventsFromResponse = (eventData) => {
         <CampusOverview />
 
         <section className="dashboard-calendar-section">
-          {/* Calendar navigation controls */}
           <div className="dashboard-calendar-header">
             <div className="week-selector">
               <span>{formatDateHeader()}</span>
-              <div className="navigation-buttons">
-                <button className="nav-button" onClick={previous}>
-                  &lt;
-                </button>
-                <button className="nav-button" onClick={today}>
-                  Aujourd'hui
-                </button>
-                <button className="nav-button" onClick={next}>
-                  &gt;
-                </button>
-              </div>
             </div>
             <div className="view-buttons">
               <button 
@@ -602,8 +605,6 @@ const generateEventsFromResponse = (eventData) => {
             )}
           </div>
         </section>
-
-        <NotificationsList notifications={notifications} />
       </div>
 
       {/* Popup d'ajout d'événement */}
