@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000', // <- remplace par ton vrai port front
+  origin: '*', // <- remplace par ton vrai port front
 }));
 app.use(express.json());
 

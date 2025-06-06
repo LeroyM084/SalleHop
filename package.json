@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "link-mateo": "node backend/scripts/linkTestDataForMateo.js",
     "pg:search": "node backend/scripts/searchEngine",
     "jwt:testing": "node backend/scripts/testToken",
     "db:sync": "node backend/scripts/syncDataBase",

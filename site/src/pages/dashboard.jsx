@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Ajout de useEffect
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Calendar from '../components/calendar/Calendar';
@@ -83,36 +83,78 @@ const Dashboard = () => {
   const weekDates = getCurrentWeekDates();
 
   // État pour les événements (maintenant modifiable)
-  const [events, setEvents] = React.useState([
-    {
-      id: '1',
-      title: 'Mathématiques - A1 ESILV',
-      start: `${weekDates[0]}T08:00:00`,
-      end: `${weekDates[0]}T12:30:00`,
-      backgroundColor: '#ff7f7f',
-      borderColor: '#ff7f7f',
-      textColor: '#ffffff',
-      extendedProps: {
-        groupe: 'A1 ESILV',
-        cours: 'Mathématiques',
-        salle: 'Sup de vinci - 204'
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fonction pour transformer les événements de l'API en format calendrier
+  const transformEvents = (apiEvents) => {
+    console.log('Transforming events:', apiEvents); // Debug log
+    return apiEvents.map(event => {
+        try {
+            const transformedEvent = {
+                id: event.id,
+                title: event.cours?.nom || 'Cours sans nom',
+                start: `${event.date}T${event.heure_debut}`,
+                end: `${event.date}T${event.heure_fin}`,
+                backgroundColor: '#4CAF50',
+                borderColor: '#4CAF50',
+                textColor: '#ffffff',
+                extendedProps: {
+                    salle: event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie'
+                }
+            };
+            console.log('Transformed event:', transformedEvent); // Debug log
+            return transformedEvent;
+        } catch (error) {
+            console.error('Error transforming event:', event, error);
+            return null;
+        }
+    }).filter(Boolean); // Filtrer les événements null
+};
+
+  // Fetch des événements au chargement
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        console.log('Fetching events...'); // Debug log
+        const response = await fetch('http://localhost:8200/api/events/events', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Raw API response:', data); // Debug log
+
+        if (data.data && Array.isArray(data.data)) {
+          const transformedEvents = transformEvents(data.data);
+          console.log('Final events to display:', transformedEvents); // Debug log
+          setEvents(transformedEvents);
+        } else {
+          console.log('No events data found in response');
+          setEvents([]);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
       }
-    },
-    {
-      id: '2',
-      title: 'Programmation C - B1 EPITECH',
-      start: `${weekDates[1]}T14:00:00`,
-      end: `${weekDates[1]}T16:00:00`,
-      backgroundColor: '#90ee90',
-      borderColor: '#90ee90',
-      textColor: '#000000',
-      extendedProps: {
-        groupe: 'B1 EPITECH',
-        cours: 'Programmation C',
-        salle: 'Informatique - 154'
-      }
-    }
-  ]);
+    };
+
+    fetchEvents();
+  }, [navigate]); // Ajoute navigate comme dépendance
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
@@ -486,12 +528,16 @@ const generateEventsFromResponse = (eventData) => {
           </div>
 
           <div className="fullcalendar-container">
-            <Calendar
-              calendarRef={calendarRef}
-              events={events}
-              handleEventClick={handleEventClick}
-              handleDateSelect={handleDateSelect}
-            />
+            {isLoading ? (
+              <div className="loading">Chargement des événements...</div>
+            ) : (
+              <Calendar
+                calendarRef={calendarRef}
+                events={events}
+                handleEventClick={handleEventClick}
+                handleDateSelect={handleDateSelect}
+              />
+            )}
           </div>
         </section>
 

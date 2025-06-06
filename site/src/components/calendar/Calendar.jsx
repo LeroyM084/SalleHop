@@ -5,12 +5,12 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
 const Calendar = ({ calendarRef, events, handleEventClick, handleDateSelect }) => {
+  console.log('Calendar received events:', events); // Debug log
   return (
     <FullCalendar
       ref={calendarRef}
       plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
       initialView="timeGridWeek"
-      headerToolbar={false}
       events={events}
       height="600px"
       slotMinTime="08:00:00"
@@ -49,7 +49,6 @@ const Calendar = ({ calendarRef, events, handleEventClick, handleDateSelect }) =
         info.el.style.borderRadius = '4px';
         info.el.style.fontSize = '12px';
       }}
-      selectAllow={() => true}
       unselectAuto={false}
     />
   );

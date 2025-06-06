@@ -5,7 +5,7 @@ const { Sequelize } = require('sequelize');
 const sequelize = new Sequelize(
   process.env.DB_NAME, // Nom de la base de données
   process.env.DB_USER, // Utilisateur
-  process.env.DB_PASSWORD, // Mot de passe
+  "salope123", // Mot de passe
   {
     host: process.env.DB_HOST, // Hôte (localhost par exemple)
     dialect: 'postgres', // Type de SGBD
