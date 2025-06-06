@@ -50,6 +50,13 @@ const Dashboard = () => {
   // Ajouter un état pour stocker la configuration de récurrence active
   const [activeRecurrence, setActiveRecurrence] = useState(null);
 
+  // Au début du composant Dashboard, avec les autres états
+  const [apiData, setApiData] = useState({
+    rooms: [],
+    courses: [],
+    groups: []
+  });
+
   // Cours par groupe (simulation de données relationnelles)
   const coursByGroupe = {
     1: [{ id: 1, nom: 'Mathématiques' }, { id: 2, nom: 'Physique' }, { id: 3, nom: 'Informatique' }],
@@ -88,45 +95,98 @@ const Dashboard = () => {
 
   // Fonction pour transformer les événements de l'API en format calendrier
   const transformEvents = (apiEvents) => {
-    console.log('Transforming events:', apiEvents); // Debug log
+    console.log('Transforming events:', apiEvents); // Debug log important
     return apiEvents.map(event => {
-        try {
-            const transformedEvent = {
-                id: event.id,
-                title: event.cours?.nom || 'Cours sans nom',
-                start: `${event.date}T${event.heure_debut}`,
-                end: `${event.date}T${event.heure_fin}`,
-                backgroundColor: '#4CAF50',
-                borderColor: '#4CAF50',
-                textColor: '#ffffff',
-                extendedProps: {
-                    salle: event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie'
-                }
-            };
-            console.log('Transformed event:', transformedEvent); // Debug log
-            return transformedEvent;
-        } catch (error) {
-            console.error('Error transforming event:', event, error);
-            return null;
-        }
-    }).filter(Boolean); // Filtrer les événements null
+      try {
+        // Gestion correcte des noms de salle avec campus
+        const salleName = event.salle ? `${event.salle.nom} - ${event.salle.campus?.nom}` : 'Salle non définie';
+        
+        // Construction plus robuste de l'événement
+        const transformedEvent = {
+          id: event.id,
+          title: `${event.cours?.nom || 'Cours sans nom'} - ${salleName}`,
+          // Utilisation correcte des champs de l'API
+          start: `${event.date.split('T')[0]}T${event.heure_debut}`,
+          end: `${event.date.split('T')[0]}T${event.heure_fin}`,
+          backgroundColor: '#4CAF50',
+          borderColor: '#4CAF50',
+          textColor: '#ffffff',
+          extendedProps: {
+            salle: salleName,
+            cours: event.cours?.nom,
+            groupe: event.groupe?.nom,
+            status: event.status // Ajout du status
+          }
+        };
+        console.log('Transformed event:', transformedEvent);
+        return transformedEvent;
+      } catch (error) {
+        console.error('Error transforming event:', event, error);
+        return null;
+      }
+    }).filter(Boolean);
 };
 
   // Fetch des événements au chargement
   useEffect(() => {
-    const fetchEvents = async () => {
+  let isMounted = true;
+
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      console.log('Fetching events...'); // Debug log
+      const response = await fetch('http://10.111.9.158:8200/api/events/events', {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Correction des backticks
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Raw API response:', data); // Debug log
+
+      if (isMounted && data.data && Array.isArray(data.data)) {
+        const transformedEvents = transformEvents(data.data);
+        console.log('Final transformed events:', transformedEvents); // Debug log
+        setEvents(transformedEvents);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      if (isMounted) setEvents([]);
+    } finally {
+      if (isMounted) setIsLoading(false);
+    }
+  };
+
+  fetchEvents();
+  return () => { isMounted = false; };
+}, [navigate]);
+
+  // Après les autres useEffect
+  useEffect(() => {
+    const fetchApiData = async () => {
       try {
-        setIsLoading(true);
         const token = localStorage.getItem('authToken');
         if (!token) {
           navigate('/login');
           return;
         }
 
-        console.log('Fetching events...'); // Debug log
-        const response = await fetch('http://localhost:8200/api/events/events', {
+        console.log('Fetching form data...');
+        const response = await fetch('http://localhost:8200/api/data/getData', {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
         });
 
@@ -134,27 +194,22 @@ const Dashboard = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Raw API response:', data); // Debug log
+        const jsonData = await response.json();
+        console.log('Form data received:', jsonData);
 
-        if (data.data && Array.isArray(data.data)) {
-          const transformedEvents = transformEvents(data.data);
-          console.log('Final events to display:', transformedEvents); // Debug log
-          setEvents(transformedEvents);
-        } else {
-          console.log('No events data found in response');
-          setEvents([]);
-        }
+        setApiData({
+          rooms: jsonData.data.salle || [],
+          courses: jsonData.data.cours || [],
+          groups: jsonData.data.groupe || []
+        });
+
       } catch (error) {
-        console.error('Error fetching events:', error);
-        setEvents([]);
-      } finally {
-        setIsLoading(false);
+        console.error('Error fetching form data:', error);
       }
     };
 
-    fetchEvents();
-  }, [navigate]); // Ajoute navigate comme dépendance
+    fetchApiData();
+  }, [navigate]);
 
   // Ajoutez ces états
   // const [currentView, setCurrentView] = React.useState('timeGridWeek');
@@ -276,47 +331,54 @@ const Dashboard = () => {
   // Créer un nouvel événement
   const handleCreateEvent = async () => {
     if (!eventForm.groupe || !eventForm.cours || !eventForm.salle) {
-        alert('Veuillez remplir tous les champs obligatoires');
-        return;
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
     }
 
     try {
-        const selectedCours = cours.find(c => c.id === parseInt(eventForm.cours));
-        const selectedGroupe = groupes.find(g => g.id === parseInt(eventForm.groupe));
-        const selectedSalle = salles.find(s => s.id === parseInt(eventForm.salle));
+      console.log('Creating event with data:', eventForm); // Debug log
 
-        if (!selectedCours || !selectedGroupe || !selectedSalle) {
-            throw new Error('Données de sélection invalides');
+      const selectedGroup = apiData.groups.find(g => g.identifiant === parseInt(eventForm.groupe));
+      const selectedCourse = apiData.courses.find(c => c.identifiant === parseInt(eventForm.cours));
+      const selectedRoom = apiData.rooms.find(r => r.identifiant === parseInt(eventForm.salle));
+
+      if (!selectedGroup || !selectedCourse || !selectedRoom) {
+        throw new Error('Données de sélection invalides');
+      }
+
+      const eventData = {
+        groupName: selectedGroup.nom,
+        coursLabel: selectedCourse.nom,
+        roomNumber: selectedRoom.nom,
+        timeSlot: {
+          date: eventForm.date,
+          startTime: eventForm.starting_hours,
+          endTime: eventForm.finishing_hours
+        },
+        recurrence: {
+          status: recurrenceForm.endType !== 'never',
+          daygap: recurrenceForm.frequency === 'semaine' ? 7 : 30,
+          iteration: recurrenceForm.endType === 'occurrences' ? recurrenceForm.occurrences : null,
+          day: Object.keys(recurrenceForm.repeatOn)
+            .filter(day => recurrenceForm.repeatOn[day])
+            .map(day => day.toLowerCase())
         }
+      };
 
-        const eventData = {
-            coursLabel: selectedCours.nom, // Convertir ID en nom
-            roomNumber: selectedSalle.nom, // Convertir ID en nom
-            groupName: selectedGroupe.nom, // Convertir ID en nom
-            timeSlot: {
-                date: eventForm.date,
-                startTime: eventForm.starting_hours,
-                endTime: eventForm.finishing_hours
-            },
-            recurrence: {
-                status: recurrenceForm.endType !== 'never',
-                daygap: recurrenceForm.frequency === 'semaine' ? 7 : 30,
-                iteration: recurrenceForm.endType === 'occurrences' ? recurrenceForm.occurrences : null,
-                day: Object.keys(recurrenceForm.repeatOn).filter(day => recurrenceForm.repeatOn[day])
-            }
-        };
+      console.log('Sending event data:', eventData); // Debug log
 
-        const response = await createEvent(eventData);
-        console.log('Réponse du serveur:', response);
+      const response = await createEvent(eventData);
+      console.log('Server response:', response); // Debug log
 
-        if (response.message === 'Evènement créé avec succès.') {
-            const newEvents = generateEventsFromResponse(response.data);
-            setEvents(prev => [...prev, ...newEvents]);
-            closeEventPopup();
-        }
+      if (response.message === 'Evènement créé avec succès.') {
+        const newEvents = generateEventsFromResponse(response.data);
+        setEvents(prev => [...prev, ...newEvents]);
+        closeEventPopup();
+        alert('Événement créé avec succès!');
+      }
     } catch (error) {
-        console.error('Erreur complète:', error);
-        alert(`Erreur lors de la création de l'événement: ${error.message}`);
+      console.error('Erreur complète:', error);
+      alert(`Erreur lors de la création de l'événement: ${error.message}`);
     }
 };
 
@@ -562,8 +624,10 @@ const generateEventsFromResponse = (eventData) => {
                   required
                 >
                   <option value="">Sélectionnez un groupe</option>
-                  {groupes.map(groupe => (
-                    <option key={groupe.id} value={groupe.id}>{groupe.nom}</option>
+                  {apiData.groups.map(group => (
+                    <option key={group.identifiant} value={group.identifiant}>
+                      {group.nom}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -573,12 +637,13 @@ const generateEventsFromResponse = (eventData) => {
                 <select
                   value={eventForm.cours}
                   onChange={(e) => handleFormChange('cours', e.target.value)}
-                  disabled={!eventForm.groupe}
                   required
                 >
                   <option value="">Sélectionnez un cours</option>
-                  {cours.map(coursItem => (
-                    <option key={coursItem.id} value={coursItem.id}>{coursItem.nom}</option>
+                  {apiData.courses.map(course => (
+                    <option key={course.identifiant} value={course.identifiant}>
+                      {course.nom}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -591,8 +656,10 @@ const generateEventsFromResponse = (eventData) => {
                   required
                 >
                   <option value="">Sélectionnez une salle</option>
-                  {salles.map(salle => (
-                    <option key={salle.id} value={salle.id}>{salle.nom}</option>
+                  {apiData.rooms.map(room => (
+                    <option key={room.identifiant} value={room.identifiant}>
+                      {room.nom}
+                    </option>
                   ))}
                 </select>
               </div>

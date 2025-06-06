@@ -3,283 +3,238 @@ import { useNavigate } from 'react-router-dom';
 import './reservation_user.css';
 
 const RoomReservation = () => {
+  console.log('Component mounting...'); // Log initial
   const navigate = useNavigate();
-  const [userName, setUserName] = useState({ prenom: '', nom: '' });
+  
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    rooms: [],
+    courses: [],
+    groups: []
+  });
 
-  const [selectedClass, setSelectedClass] = useState('B3DEV');
-  // Nouveaux états pour jour, heure début, heure fin
-  const [selectedDay, setSelectedDay] = useState('27/05');
-  const [selectedStartTime, setSelectedStartTime] = useState('8h00');
-  const [selectedEndTime, setSelectedEndTime] = useState('9h00');
+  const [formData, setFormData] = useState({
+    group: '',
+    course: '',
+    room: '',
+    date: new Date().toISOString().split('T')[0],
+    startTime: '08:00',
+    endTime: '09:00'
+  });
 
-  // Récupérer le nom et prénom de l'utilisateur au chargement du composant
+  // Séparation de la logique de fetch dans une fonction dédiée
+  const fetchInitialData = async (token) => {
+    try {
+      console.log('Making API call...');
+      const response = await fetch('http://localhost:8200/api/data/getData', {
+        method: 'GET', // Explicitement définir la méthode
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonData = await response.json();
+      console.log('Data received:', jsonData);
+
+      return jsonData;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  };
+
+  // useEffect avec une fonction plus claire
   useEffect(() => {
-    const fetchUserName = async () => {
+    console.log('useEffect triggered');
+    
+    const initializeData = async () => {
       try {
-        // Simulation de récupération de données utilisateur
-        setTimeout(() => {
-          setUserName({ 
-            prenom: 'Utilisateur', 
-            nom: '' 
-          });
-          setLoading(false);
-        }, 500);
+        const token = localStorage.getItem('authToken');
+        console.log('Token present:', !!token);
+
+        if (!token) {
+          console.log('No token - redirecting');
+          navigate('/login');
+          return;
+        }
+
+        const jsonData = await fetchInitialData(token);
+        
+        setData({
+          rooms: jsonData.data.salle || [],
+          courses: jsonData.data.cours || [],
+          groups: jsonData.data.groupe || []
+        });
+        
+        console.log('Data updated successfully');
       } catch (error) {
-        console.error('Erreur:', error);
-        setUserName({ prenom: 'Utilisateur', nom: '' });
+        console.error('Initialization error:', error);
+        setError(error.message);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchUserName();
-  }, []);
+    initializeData();
+  }, []); // Retirer navigate des dépendances pour éviter les re-renders
 
-  // Données d'exemple pour les salles disponibles
-  const roomOptions = [
-    { id: '204', name: '204' },
-    { id: '205', name: '205' },
-    { id: '206', name: '206' },
-    { id: '154', name: '154' },
-  ];
-
-  // Données d'exemple pour les classes
-  const classOptions = [
-    { id: 'B3DEV', name: 'B3DEV' },
-    { id: 'B2DEV', name: 'B2DEV' },
-    { id: 'M1INFO', name: 'M1INFO' },
-    { id: 'M2DATA', name: 'M2DATA' },
-  ];
-
-  // Données d'exemple pour le calendrier de disponibilité
-  const weekdays = ['27/05', '28/05', '29/05', '30/05', '31/05', '01/06', '02/06'];
-  
-  // Plage horaire de la journée (8h - 18h)
-  const startHour = 8;
-  const endHour = 18;
-  const slotCount = (endHour - startHour) * 2; // 20 demi-heures
-
-  const timeSlots = Array.from({ length: slotCount + 1 }, (_, i) => {
-  const hour = startHour + Math.floor(i / 2);
-  const min = i % 2 === 0 ? '00' : '30';
-  return `${hour}h${min}`;
-});
-
-  // Exemple de réservations existantes
-  const bookings = [
-    { day: '27/05', start: '8h00', end: '13h30', title: 'Cours B3DEV' },
-    { day: '27/05', start: '14h00', end: '16h00', title: 'Réunion' },
-    { day: '28/05', start: '9h00', end: '12h00', title: 'TD M1INFO' },  
-    { day: '29/05', start: '10h00', end: '11h00', title: 'Soutien' },
-    { day: '30/05', start: '8h00', end: '10h00', title: 'Cours B2DEV' },
-    { day: '30/05', start: '14h00', end: '17h00', title: 'TP M2DATA' },
-    { day: '31/05', start: '8h00', end: '10h00', title: 'Conférence' },
-    { day: '31/05', start: '15h00', end: '17h00', title: 'Atelier' },
-  ];
-
-  // Fonction pour convertir un format horaire "Xh00" en nombre d'heures depuis le début de la journée
-  const getHourValue = (timeStr) => {
-    const hour = parseInt(timeStr.split('h')[0]);
-    return hour - startHour; // Nombre d'heures depuis le début (8h)
+  // Gestion des changements de formulaire
+  const handleFormChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  // Fonction pour calculer la position et la hauteur d'une réservation
-const calculateBookingPosition = (booking) => {
-  const getMinutes = (str) => {
-    const [h, m] = str.split('h');
-    const hour = parseInt(h, 10);
-    const min = parseInt(m || '0', 10);
-    if (isNaN(hour) || isNaN(min)) return 0;
-    return (hour * 60 + min) - (startHour * 60);
+  // Soumission du formulaire
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      const eventData = {
+        groupName: formData.group,
+        coursLabel: formData.course,
+        roomNumber: formData.room,
+        timeSlot: {
+          date: formData.date,
+          startTime: formData.startTime,
+          endTime: formData.endTime
+        }
+      };
+
+      const response = await fetch('http://localhost:8200/api/events/newEvent', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create reservation');
+      }
+
+      // Réservation réussie
+      alert('Réservation créée avec succès!');
+      
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      alert('Erreur lors de la création de la réservation');
+    }
   };
-  const startOffset = getMinutes(booking.start);
-  const endOffset = getMinutes(booking.end);
-  const duration = endOffset - startOffset;
 
-  const totalMinutes = (endHour - startHour) * 60;
-  const top = (startOffset / totalMinutes) * 100;
-  const height = (duration / totalMinutes) * 100;
+  if (loading) {
+    return <div>Chargement des données...</div>;
+  }
 
-  return { top, height };
-};
-
-  // Fonction pour la réservation d'une salle
-  const handleReservation = () => {
-    // Cette fonction sera implémentée plus tard pour communiquer avec l'API
-    alert(
-        `Réservation enregistrée pour la classe ${selectedClass}, le ${selectedDay} de ${selectedStartTime} à ${selectedEndTime}.`
-    );
-  };
-
-  // Fonction pour naviguer vers une autre page
-  const navigateTo = (path) => {
-    navigate(path);
-  };
+  if (error) {
+    return <div>Erreur: {error}</div>;
+  }
 
   return (
-    <div className="dashboard-container">
-      {/* Barre de navigation latérale */}
-      <div className="sidebar">
-        <nav className="nav-menu">
-          <button className="nav-item" onClick={() => navigateTo('/dashboard')}>
-            <div className="nav-icon home-icon"></div>
-          </button>
-          <button className="nav-item" onClick={() => navigateTo('/reservation')}>
-            <div className="nav-icon calendar-icon"></div>
-          </button>
-          <button className="nav-item" onClick={() => navigateTo('/profile')}>
-            <div className="nav-icon profile-icon"></div>
-          </button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item" onClick={() => navigateTo('/settings')}>
-            <div className="nav-icon settings-icon"></div>
-          </button>
+    <div className="reservation-form-container">
+      <form onSubmit={handleSubmit} className="reservation-form">
+        <h2>Nouvelle Réservation</h2>
+        
+        <div className="form-group">
+          <label>Groupe</label>
+          <select 
+            value={formData.group}
+            onChange={(e) => handleFormChange('group', e.target.value)}
+            required
+          >
+            <option value="">Sélectionnez un groupe</option>
+            {data.groups.map(group => (
+              <option key={group.identifiant} value={group.identifiant}>
+                {group.nom}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
 
-      {/* Contenu principal */}
-      <div className="main-content">
-        {/* En-tête avec nom utilisateur et notification */}
-        <header className="dashboard-header">
-          <div className="user-info">
-            Réservations
-          </div>
-          <div className="notification-icon"></div>
-        </header>
+        <div className="form-group">
+          <label>Cours</label>
+          <select 
+            value={formData.course}
+            onChange={(e) => handleFormChange('course', e.target.value)}
+            required
+          >
+            <option value="">Sélectionnez un cours</option>
+            {data.courses.map(course => (
+              <option key={course.identifiant} value={course.identifiant}>
+                {course.nom}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {/* Section de réservation */}
-        <section className="reservation-section">
-          <h2 className="section-title">Réserver une salle</h2>
-          
-          <div className="reservation-form">
-            <div className="form-row">
-              {/* Champ Classe */}
-              <div className="form-group">
-                <label>Pour quelle Classe ?</label>
-                <select 
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className="form-select"
-                >
-                  {classOptions.map(classOption => (
-                    <option key={classOption.id} value={classOption.id}>{classOption.name}</option>
-                  ))}
-                </select>
-              </div>
-              {/* Champ Jour */}
-              <div className="form-group">
-                <label>Jour</label>
-                <select
-                  value={selectedDay}
-                  onChange={(e) => setSelectedDay(e.target.value)}
-                  className="form-select"
-                >
-                  {weekdays.map((day, idx) => (
-                    <option key={idx} value={day}>{day}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="form-row">
+        <div className="form-group">
+          <label>Salle</label>
+          <select 
+            value={formData.room}
+            onChange={(e) => handleFormChange('room', e.target.value)}
+            required
+          >
+            <option value="">Sélectionnez une salle</option>
+            {data.rooms.map(room => (
+              <option key={room.identifiant} value={room.identifiant}>
+                {room.nom}
+              </option>
+            ))}
+          </select>
+        </div>
 
-              {/* Champ Heure de début */}
-              <div className="form-group">
-                <label>Heure de début</label>
-                <select
-                  value={selectedStartTime}
-                  onChange={(e) => setSelectedStartTime(e.target.value)}
-                  className="form-select"
-                >
-                  {timeSlots.map((slot, idx) => (
-                    <option key={idx} value={slot}>{slot}</option>
-                  ))}
-                </select>
-              </div>
-              {/* Champ Heure de fin */}
-              <div className="form-group">
-                <label>Heure de fin</label>
-                <select
-                  value={selectedEndTime}
-                  onChange={(e) => setSelectedEndTime(e.target.value)}
-                  className="form-select"
-                >
-                  {timeSlots.map((slot, idx) => (
-                    <option key={idx} value={slot}>{slot}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          <div className="reservation_user-calendar-container">
-            <h3 className="reservation_user-calendar-title">Créneaux</h3>
-            
-            <div className="reservation_user-calendar-grid">
-              <div className="reservation_user-calendar-header">
-                {weekdays.map((day, index) => (
-                  <div key={index} className="day-column-header">{day}</div>
-                ))}
-              </div>
-              
-             <div className="reservation_user-calendar-body">
-              <div className="calendar-time-indicators">
-                {timeSlots.map((slot, idx) => (
-                  <div key={idx} className="time-indicator">
-                    {slot}
-                  </div>
-                ))}
-              </div>
-              <div className="calendar-columns-container">
-                {weekdays.map((day, dayIndex) => (
-                  <div key={dayIndex} className="day-column">
-                    {/* Lignes horaires pour la grille visuelle */}
-                    {timeSlots.slice(1).map((_, slotIdx) => (
-                      <div
-                        key={slotIdx}
-                        className="hour-line"
-                        style={{ top: `${(slotIdx / slotCount) * 100}%` }}
-                      ></div>
-                    ))}
-                    {/* Réservations pour ce jour */}
-                    {bookings
-                      .filter(booking => booking.day === day)
-                      .map((booking, bookingIndex) => {
-                        const { top, height } = calculateBookingPosition(booking);
-                        return (
-                          <div
-                            key={bookingIndex}
-                            className="booking-block"
-                            style={{
-                              top: `${top}%`,
-                              height: `${height}%`
-                            }}
-                          >
-                            <div className="booking-content">
-                              <div className="booking-time">
-                                {booking.start} - {booking.end}
-                              </div>
-                              <div className="booking-title">
-                                {booking.title}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="reservation-footer">
-              <button className="reservation-button" onClick={handleReservation}>
-                Réserver
-              </button>
-            </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Date</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => handleFormChange('date', e.target.value)}
+              required
+            />
           </div>
         </div>
-        </section>
-      </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Heure de début</label>
+            <input
+              type="time"
+              value={formData.startTime}
+              onChange={(e) => handleFormChange('startTime', e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Heure de fin</label>
+            <input
+              type="time"
+              value={formData.endTime}
+              onChange={(e) => handleFormChange('endTime', e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="submit-button">
+            Créer la réservation
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -382,3 +382,18 @@ button {
     padding: 10px;
   }
 }
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: #ff4444;
+  background-color: #ffeeee;
+  border-radius: 4px;
+  margin: 1rem;
+}

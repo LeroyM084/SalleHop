@@ -47,6 +47,7 @@ router.post('/signup',
 router.post('/login', 
     dataTypeValidation(loginSchema),
     async(req,res)=>{
+    console.log('Route login apeller')
     try {
         // On utilise un controller pour gérer la logique de la connexion.
         const result = await loginController(req);

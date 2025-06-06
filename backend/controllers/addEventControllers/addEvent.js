@@ -2,6 +2,7 @@ const { utilisateur, salle, groupe, creneau, cours, Definir } = require('../../m
 const { Op } = require('sequelize');
 
 const addEvent = async(eventData, userId) => {
+    console.log('addEvent called with eventData:', eventData, 'and userId:', userId);
     try {
         // Vérifier si l'utilisateur existe
         const user = await utilisateur.findByPk(userId);
@@ -44,12 +45,16 @@ const addEvent = async(eventData, userId) => {
         
         // On relie ensuite tout ça dans la table définir.  // -- DEBUG
         const newEvent = await Definir.create({
-            utilisateur_id: userId,
+            user_id: userId,
             salle_id: room.identifiant,
             groupe_id: group.identifiant,
             creneau_id: newCreneau.identifiant,
             cours_id: course.identifiant
         });
+
+        if(newEvent){
+            console.log('Nouvel évènement créé avec succès:', newEvent);
+        }
 
         return result = {
             status : 'ok',

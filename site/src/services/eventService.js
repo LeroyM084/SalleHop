@@ -1,33 +1,31 @@
 const API_URL = 'http://localhost:8200/api/events';
 
 export const createEvent = async (eventData) => {
-    try {
-        console.log('Données envoyées à l\'API:', eventData);
-        
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            throw new Error('Token d\'authentification manquant');
-        }
-
-        const response = await fetch(`${API_URL}/newEvent`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(eventData)
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            console.error('Réponse API error:', data);
-            throw new Error(data.message || `Erreur ${response.status}: ${response.statusText}`);
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Erreur détaillée:', error);
-        throw new Error(`Erreur de création: ${error.message}`);
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('No authentication token found');
     }
+
+    const response = await fetch('http://localhost:8200/api/addEvents/newEvent', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text(); // Utiliser text() au lieu de json()
+      console.error('Response error:', errorData);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Create event error:', error);
+    throw new Error(`Erreur de création: ${error.message}`);
+  }
 };
